@@ -1,0 +1,10 @@
+{
+    "player/idle": {
+        "img_dur": 10,
+        "loop": true
+    },
+    "player/run": {
+        "img_dur": 10,
+        "loop": true
+    }
+}
