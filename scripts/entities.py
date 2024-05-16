@@ -10,15 +10,22 @@ from scripts.input import Controller, Keyboard
 from scripts.animation import Animation
 from scripts.camera import Camera
 
+class ModifiedSpriteGroup(pygame.sprite.Group):
+    def __init__(self):
+        super().__init__()
+
+    def get_entity(self, index):
+        return self.sprites()[index]
+
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, pos:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0):
+    def __init__(self, pos:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], camLayer=0):
         super().__init__()
         # parameters
         self.pos = pygame.math.Vector2(pos)
         self.size = size
         self.tag = tag
         self.assets = assets
-        self._layer = layer
+        self.camLayer = camLayer
 
         # movement
         self.flip = False
@@ -67,6 +74,10 @@ class Entity(pygame.sprite.Sprite):
         x = self.pos.x - (self.width // 2)
         y = self.pos.y - (self.height // 2)
         return [x, y]
+    
+    # Changes the layer
+    def change_layer(self, increment):
+        self.camLayer += increment
     
     # Gets the angle between 2 entities
     def get_entity_angle(self, entity_2):

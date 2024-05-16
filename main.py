@@ -7,7 +7,7 @@ from pygame.constants import *
 # Scripts
 from scripts.camera import Window
 from scripts.settings import Settings
-from scripts.entities import Player
+from scripts.entities import Player, ModifiedSpriteGroup
 from scripts.animation import load_animations
 from scripts.input import Controller, Keyboard, controller_check
 
@@ -38,8 +38,8 @@ class Game():
         self.inputDevices = []
 
         # game properties
-        self.entities = pygame.sprite.Group()
-        self.players = pygame.sprite.Group()
+        self.entities = ModifiedSpriteGroup()
+        self.players = ModifiedSpriteGroup()
         self.state = "running"
     
     # creates a player and assigns them a controller
@@ -79,21 +79,17 @@ class Game():
                 self.state = ""
             if event.type == pygame.KEYDOWN:
                 if event.key == K_RIGHT:
-                    self.window.currentCameraIndex += 1
-                    print(self.players.layers)
-                    self.players.change_layer(self.players.get_sprite(0), self.players.get_sprite(0)._layer + 1)
+                    self.window.change_camera(+1)
                 if event.key == K_LEFT:
-                    self.window.currentCameraIndex -= 1
-                    print(self.players.layers)
-                    self.players.change_layer(self.players.get_sprite(0), self.players.get_sprite(0)._layer - 1)
-            
+                    self.window.change_camera(-1)
+
             for player in self.players.sprites():
                 player.input_events(event)
 
     def run(self):
         self.detect_inputs()
-        self.create_player((40, 20), layer=6)
-        self.create_player((20, 20), 1, layer=4)
+        self.create_player((40, 20), layer=4)
+        self.create_player((20, 20), 1, layer=6)
         while self.state == "running":
             self.clock.tick(self.settings.targetFPS)
             self.event_handler()

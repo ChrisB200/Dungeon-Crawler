@@ -18,19 +18,17 @@ class Window():
         return self.camera.screen
     
     def update(self):
-        #self.camera.update()
-        pass
+        self.camera.update()
 
     def draw(self, *args, **kwargs):
         self.camera.draw(*args, **kwargs)
-
         self.display.blit(pygame.transform.scale(self.screen, self.resolution), (0, 0))
         
     def add_camera(self, camera):
         self.cameras.append(camera)
 
-    def set_camera(self, index):
-        self.currentCameraIndex = index
+    def change_camera(self, increment):
+        self.currentCameraIndex += increment
 
 class Camera(pygame.sprite.Group):
     def __init__(self, resolution, scale, offset=(0, 0)):
@@ -56,39 +54,40 @@ class Camera(pygame.sprite.Group):
         self.screen = pygame.Surface((self.resolution[0] / self.scale, self.resolution[1] / self.scale))
         self.targets = ()
 
-    # combines all sprite groups into one and draw by x, y, or layer
-    def draw_sprite_groups(self, *args):
-        for group in args:
-            group.draw(self.screen)
+    def draw_by_layers(self):
+        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.camLayer):
+            self.screen.blit(sprite.image, (sprite.pos.x, sprite.pos.y))
 
-    # combines all rects into one
-    def draw_rects(self, *args):
-        for arg in args:
-            colour = arg[1]
-            rect = arg[0]
-            pygame.draw.rect(self.screen, colour, rect)
+    def draw_by_x(self):
+        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.pos.x):
+            self.screen.blit(sprite.image, (sprite.pos.x, sprite.pos.y))
 
-    # combines all surfaces into one
-    def draw_surfaces(self, *args):
-        for arg in args:
-            pos = arg[1]
-            surface = arg[0]
-            self.screen.blit(surface, pos)
+    def draw_by_y(self):
+        for sprite in sorted(self.sprites(), key=lambda sprite: sprite.pos.y):
+            self.screen.blit(sprite.image, (sprite.pos.x, sprite.pos.y))
 
-    def draw(self, *args, **kwargs):
-        if "fill" in kwargs:
-            self.screen.fill(kwargs["fill"])
-        
+    def add_sprites(self, *args):
         for group in args:
             for sprite in group:
-                allSprites.add(sprite)
+                self.add(sprite)
+
+    def draw_background(self, **kwargs):
+        if "fill" in kwargs:
+            self.screen.fill(kwargs["fill"])
+
+    def draw(self, *args, **kwargs):
+        self.draw_background(**kwargs)
+        self.add_sprites(*args)
         
         if self.renderOrder["layer"]:
-            allSprites = sorted(allSprites, key=lambda sprite: sprite.layer)
+            print("hi")
+            self.draw_by_layers()
         elif self.renderOrder["x"]:
-            allSprites = sorted(allSprites, key=lambda sprite: sprite.rect.x)
+            self.draw_by_x
         elif self.renderOrder["y"]:
-            allSprites = sorted(allSprites, key=lambda sprite: sprite.rect.y)
+            self.draw_by_y
 
-        allSprites.draw(self.screen)
-        allSprites.clear()
+        self.empty()
+
+    def update(self):
+        pass
