@@ -7,7 +7,7 @@ from pygame.constants import *
 # Scripts
 from scripts.camera import Window
 from scripts.settings import Settings
-from scripts.entities import Player, ModifiedSpriteGroup
+from scripts.entities import Player, ModifiedSpriteGroup, UserCursor
 from scripts.animation import load_animations
 from scripts.input import Controller, Keyboard, controller_check
 
@@ -32,7 +32,7 @@ class Game():
 
         # core properties
         self.settings = Settings()
-        self.window = Window(self.settings.resolution, 2)
+        self.window = Window(self.settings.resolution)
         self.clock = pygame.time.Clock()
         self.assets = load_animations(BASE_IMG_PATH)
         self.inputDevices = []
@@ -44,10 +44,18 @@ class Game():
     
     # creates a player and assigns them a controller
     def create_player(self, pos, input=0, layer=0):
-        numOfPlayers = len(self.entities.sprites())
+        numOfPlayers = len(self.players.sprites())
+
+        # player properties
         player = Player(numOfPlayers, pos, [8, 13], "player", self.assets, layer)
-        player.input = self.inputDevices[input]
+        cursor = UserCursor(pos, [9, 9], "cursor1", self.assets, layer=90, isScroll=False)
+        input = self.inputDevices[input]
+
+        # assignment of the properties
+        player.input = input
+        player.cursor = cursor
         self.players.add(player)
+        self.entities.add(cursor)
 
     # detects input devices and appends them
     def detect_inputs(self):
@@ -63,7 +71,7 @@ class Game():
     
     # draws the window
     def draw(self):
-        self.window.draw(self.players, fill=(100, 100, 100))
+        self.window.draw(self.players, self.entities, fill=(100, 100, 100))
         pygame.display.update()
     
     def update(self):
@@ -79,17 +87,18 @@ class Game():
                 self.state = ""
             if event.type == pygame.KEYDOWN:
                 if event.key == K_RIGHT:
-                    self.window.change_camera(+1)
+                    self.window.change_camera(1)
                 if event.key == K_LEFT:
                     self.window.change_camera(-1)
 
-            for player in self.players.sprites():
+            for player in self.players:
                 player.input_events(event)
 
     def run(self):
         self.detect_inputs()
-        self.create_player((40, 20), layer=4)
-        self.create_player((20, 20), 1, layer=6)
+        self.create_player((40, 20), 1, layer=1)
+        self.create_player((40, 20), 0, layer=1)
+        self.window.camera.set_target(self.players.get_entity(0))
         while self.state == "running":
             self.clock.tick(self.settings.targetFPS)
             self.event_handler()

@@ -5,7 +5,7 @@ import logging
 from pygame.constants import *
 
 # Scripts
-from scripts.framework import get_center, collision_test, numCap
+from scripts.framework import get_center, collision_test
 from scripts.input import Controller, Keyboard
 from scripts.animation import Animation
 from scripts.camera import Camera
@@ -18,34 +18,27 @@ class ModifiedSpriteGroup(pygame.sprite.Group):
         return self.sprites()[index]
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, pos:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], camLayer=0):
+    def __init__(self, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], camLayer=0, isScroll=True):
         super().__init__()
         # parameters
-        self.pos = pygame.math.Vector2(pos)
+        self.transform = pygame.math.Vector2(transform)
         self.size = size
         self.tag = tag
         self.assets = assets
         self.camLayer = camLayer
+        self.isScroll = isScroll
 
         # movement
         self.flip = False
         self.directions: dict[str, bool] = {"left" : False, "right": False, "up": False, "down": False}
-        self.movement = pygame.math.Vector2() # [x, y]
+        self.movement = pygame.math.Vector2()
         
         # animation
         self.action: str = ""
         self.anim_offset: tuple[int, int] = (0, 0)
         self.set_action("idle")
         
-        self.rect: pygame.Rect = pygame.Rect(self.pos.x, self.pos.y, self.size[0], self.size[1])
-
-    @property
-    def x(self):
-        return self.pos.x
-    
-    @property
-    def y(self):
-        return self.pos.y
+        self.rect: pygame.Rect = pygame.Rect(self.transform.x, self.transform.y, self.size[0], self.size[1])
     
     @property
     def width(self):
@@ -59,30 +52,30 @@ class Entity(pygame.sprite.Sprite):
     def image(self):
         return pygame.transform.flip(self.animation.img(), self.flip, False)
     
-    # Sets an animation action
+    # sets an animation action
     def set_action(self, action):
         if action != self.action:
             self.action = action
             self.animation = self.assets[self.tag + "/" + self.action].copy()
 
-    # Updates the current frame of an animation
+    # updates the current frame of an animation
     def update_animation(self, dt):
         self.animation.update(dt)
 
-    # Gets the center
+    # gets the center of the entity
     def get_center(self):
-        x = self.pos.x - (self.width // 2)
-        y = self.pos.y - (self.height // 2)
+        x = self.transform.x - (self.width // 2)
+        y = self.transform.y - (self.height // 2)
         return [x, y]
     
-    # Changes the layer
+    # changes the camera layer
     def change_layer(self, increment):
         self.camLayer += increment
     
-    # Gets the angle between 2 entities
+    # gets the angle between 2 entities
     def get_entity_angle(self, entity_2):
-        x1 = self.pos.x + int(self.width / 2)
-        y1 = self.pos.y + int(self.height / 2)
+        x1 = self.transform.x + int(self.width / 2)
+        y1 = self.transform.y + int(self.height / 2)
         x2 = entity_2.x + int(entity_2.width / 2)
         y2 = entity_2.y + int(entity_2.height / 2)
         angle = math.atan((y2-y1) / (x2-x1))
@@ -90,32 +83,32 @@ class Entity(pygame.sprite.Sprite):
             angle += math.pi
         return angle
     
-    # Gets the angle between an entity and a point
+    # gets the angle between an entity and a point
     def get_point_angle(self, point, scroll=[0, 0], offset=0, centered=True):
-        pos = [self.pos.x - scroll[0], self.pos.y - scroll[1]]
+        transform = [self.transform.x - scroll[0], self.transform.y - scroll[1]]
         if centered:
-            pos = get_center(pos, self.size)
-        radians = math.atan2(point[1] - pos[1], point[0] - pos[0])
+            transform = get_center(transform, self.size)
+        radians = math.atan2(point[1] - transform[1], point[0] - transform[0])
         return -math.degrees(radians) + offset
     
-    # Gets the distance between an entity and a point
+    # gets the distance between an entity and a point
     def get_distance(self, point):
         dis_x = point[0] - self.get_center()[0]
         dis_y = point[1] - self.get_center()[1]
         return math.sqrt(dis_x ** 2 + dis_y ** 2)
     
 class PhysicsEntity(Entity):
-    def __init__(self, pos:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0):
+    def __init__(self, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0, isScroll=True):
         # Parameters
-        super().__init__(pos, size, tag, assets, layer)
+        super().__init__(transform, size, tag, assets, layer, isScroll)
         # Rects and Collisions
         self.collisions: dict[str, bool] = {'bottom': False, 'top': False, 'left': False, 'right': False}
 
     # Checks for collisions based on movement direction
     def move(self, movement, tiles, dt):
         # x-axis
-        self.pos.x += movement[0] * dt
-        self.rect.x = int(self.pos.x)
+        self.transform.x += movement[0] * dt
+        self.rect.x = int(self.transform.x)
         tileCollisions = collision_test(self.rect, tiles)
         objectCollisions = {'bottom': False, 'top': False, 'left': False, 'right': False}
         for tile in tileCollisions:
@@ -125,11 +118,11 @@ class PhysicsEntity(Entity):
             elif movement[0] < 0:
                 self.rect.left = tile.right
                 objectCollisions["left"] = True
-        self.pos.x = self.rect.x
+        self.transform.x = self.rect.x
 
         # y-axis
-        self.pos.y += movement[1] * dt
-        self.rect.y = int(self.pos.y)
+        self.transform.y += movement[1] * dt
+        self.rect.y = int(self.transform.y)
         tileCollisions = collision_test(self.rect, tiles)
         for tile in tileCollisions:
             if movement[1] > 0:
@@ -138,19 +131,18 @@ class PhysicsEntity(Entity):
             elif movement[1] < 0:
                 self.rect.top = tile.bottom
                 objectCollisions["top"] = True
-        self.pos.y = self.rect.y
+        self.transform.y = self.rect.y
         self.collisions = objectCollisions
 
-
 class Player(PhysicsEntity):
-    def __init__(self, id:int, pos:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0):
-        super().__init__(pos, size, tag, assets, layer)
+    def __init__(self, id:int, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0, isScroll=True):
+        super().__init__(transform, size, tag, assets, layer, isScroll)
         self.id = id
         self.speed = 0
-        self.cursor = UserCursor(pygame.mouse.get_pos(), [9, 9], "cursor1", assets)
         self.weapon = None
         self.directions = {"up": False, "down": False, "left": False, "right": False}
         self.input = None
+        self.cursor = None
 
     def input_events(self, event):
         if self.input is not None:
@@ -224,32 +216,46 @@ class Player(PhysicsEntity):
 
         self.move(self.movement, tiles, dt)
         self.update_animation(dt)
+        if self.cursor:
+            self.cursor.update(self, camera)
         if self.input:
             self.input.update()
 
 class UserCursor(Entity):
-    def __init__(self, pos, size, tag, assets):
-        super().__init__(pos, size, tag, assets)
+    def __init__(self, transform, size, tag, assets, layer=0, isScroll=True):
+        super().__init__(transform, size, tag, assets, layer, isScroll)
         self.location = [1, 1]
 
-    def set_pos(self, x, y):
-        self.pos[0] = x
-        self.pos[1] = y
+    def set_transform(self, x, y):
+        self.transform.x = x
+        self.transform.y = y
 
     def update(self, player:Player, camera:Camera):
-        x = self.pos[0]
-        y = self.pos[1]
+        x = self.transform.x
+        y = self.transform.y
+        if x < 0:
+            x = 0
+        elif x > camera.resolution[0]:
+            x = camera.resolution[0]
+        if y < 0:
+            y = 0
+        elif y > camera.resolution[1]:
+            y = camera.resolution[1]
+
+        
         if isinstance(player.input, Controller):
             x += round(player.input.rightStick[0] * 5)
             y += round(player.input.rightStick[1] * 5)
-            self.pos[0] = self.pos[0]
-            self.pos[1] = self.pos[1] 
-            self.set_pos(x, y)
+            self.transform.x = x
+            self.transform.y = y
+            self.set_transform(x, y)
         else:
             x, y = pygame.mouse.get_pos()
-            self.set_pos(x, y)
+            print(x, y)    
+            self.set_transform(x // camera.scale, y // camera.scale)
+
         self.cursor_in_space(camera.scale)
 
     def cursor_in_space(self, camera_scale):
-        self.location[0] = self.pos[0] // camera_scale
-        self.location[1] = self.pos[1] // camera_scale
+        self.location[0] = self.transform[0] // camera_scale
+        self.location[1] = self.transform[1] // camera_scale

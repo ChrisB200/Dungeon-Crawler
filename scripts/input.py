@@ -1,3 +1,4 @@
+# Modules
 import pygame
 from dataclasses import dataclass
 
@@ -13,13 +14,18 @@ class Controls:
 
 class Controller:
     def __init__(self, controls:Controls, joystick):
+        # parameters
         self.controls = controls
         self.joystick = joystick
+        
+        # controller sticks
         self.leftStick = pygame.math.Vector2()
         self.rightStick = pygame.math.Vector2()
+
+        # attributes
         self.deadzone = 0.1
 
-    # Controls the deadzone - input below deadzone value is set to 0 to stop stick drift
+    # controls the deadzone - input below deadzone value is set to 0 to stop stick drift
     def control_deadzone(self, deadzone, *axes):
         newAxes = []
         for axis in axes:
@@ -29,7 +35,7 @@ class Controller:
 
         return newAxes
 
-    # Calculate sticks movement
+    # calculate sticks movement with deadzone
     def calculate_sticks(self):
         leftStick = self.control_deadzone(self.deadzone, self.joystick.get_axis(0), self.joystick.get_axis(1))
         rightStick = self.control_deadzone(self.deadzone, self.joystick.get_axis(2), self.joystick.get_axis(3))
@@ -38,6 +44,7 @@ class Controller:
         self.rightStick.x = rightStick[0]
         self.rightStick.y = rightStick[1]
 
+    # update the sticks
     def update(self):
         self.calculate_sticks()
     
