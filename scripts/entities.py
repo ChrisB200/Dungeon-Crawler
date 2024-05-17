@@ -18,7 +18,7 @@ class ModifiedSpriteGroup(pygame.sprite.Group):
         return self.sprites()[index]
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], camLayer=0, isScroll=True):
+    def __init__(self, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], camLayer=0, isScroll=True, animation="idle"):
         super().__init__()
         # parameters
         self.transform = pygame.math.Vector2(transform)
@@ -36,7 +36,7 @@ class Entity(pygame.sprite.Sprite):
         # animation
         self.action: str = ""
         self.anim_offset: tuple[int, int] = (0, 0)
-        self.set_action("idle")
+        self.set_action(animation)
         
         self.rect: pygame.Rect = pygame.Rect(self.transform.x, self.transform.y, self.size[0], self.size[1])
     
@@ -98,9 +98,9 @@ class Entity(pygame.sprite.Sprite):
         return math.sqrt(dis_x ** 2 + dis_y ** 2)
     
 class PhysicsEntity(Entity):
-    def __init__(self, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0, isScroll=True):
+    def __init__(self, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0, isScroll=True, animation="idle"):
         # Parameters
-        super().__init__(transform, size, tag, assets, layer, isScroll)
+        super().__init__(transform, size, tag, assets, layer, isScroll, animation)
         # Rects and Collisions
         self.collisions: dict[str, bool] = {'bottom': False, 'top': False, 'left': False, 'right': False}
 
@@ -135,14 +135,16 @@ class PhysicsEntity(Entity):
         self.collisions = objectCollisions
 
 class Player(PhysicsEntity):
-    def __init__(self, id:int, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0, isScroll=True):
-        super().__init__(transform, size, tag, assets, layer, isScroll)
+    def __init__(self, id:int, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0, isScroll=True, animation="idle"):
+        super().__init__(transform, size, tag, assets, layer, isScroll, animation)
         self.id = id
         self.speed = 0
         self.weapon = None
         self.directions = {"up": False, "down": False, "left": False, "right": False}
+        self.lastFacedDirection = {"up": False, "down": False, "left": False, "right": False}
         self.input = None
         self.cursor = None
+        self.set_action("idle/down")
 
     def input_events(self, event):
         if self.input is not None:
@@ -157,7 +159,6 @@ class Player(PhysicsEntity):
                 self.directions["left"] = True
             if event.key == self.input.controls.moveRight:
                 self.directions["right"] = True
-
             if event.key == self.input.controls.moveUp:
                 self.directions["up"] = True
             if event.key == self.input.controls.moveDown:
@@ -166,20 +167,26 @@ class Player(PhysicsEntity):
         elif event.type == pygame.KEYUP:
             if event.key == self.input.controls.moveLeft:
                 self.directions["left"] = False
+                self.lastFacedDirection = {"up": self.directions["up"], "down": self.directions["down"], "left": True, "right": False}
             if event.key == self.input.controls.moveRight:
                 self.directions["right"] = False
+                self.lastFacedDirection = {"up": self.directions["up"], "down": self.directions["down"], "left": False, "right": True}
             if event.key == self.input.controls.moveUp:
                 self.directions["up"] = False
+                self.lastFacedDirection = {"up": True, "down": False, "left": self.directions["left"], "right": self.directions["right"]}
             if event.key == self.input.controls.moveDown:
                 self.directions["down"] = False
+                self.lastFacedDirection = {"up": False, "down": True, "left": self.directions["left"], "right": self.directions["right"]}
 
     def controller_input(self, event):
         if self.input.leftStick.x > 0:
             self.directions["right"] = True
             self.directions["left"] = False
+            self.lastFacedDirection = {"up": self.directions["up"], "down": self.directions["down"], "left": False, "right": True}
         elif self.input.leftStick.x < 0:
             self.directions["left"] = True
             self.directions["right"] = False
+            self.lastFacedDirection = {"up": self.directions["up"], "down": self.directions["down"], "left": True, "right": False}
         else:
             self.directions["left"] = False
             self.directions["right"] = False
@@ -187,35 +194,66 @@ class Player(PhysicsEntity):
         if self.input.leftStick.y > 0:
             self.directions["down"] = True
             self.directions["up"] = False
+            self.lastFacedDirection = {"up": False, "down": True, "left": self.directions["left"], "right": self.directions["right"]}
         elif self.input.leftStick.y < 0:
             self.directions["up"] = True
             self.directions["down"] = False
+            self.lastFacedDirection = {"up": True, "down": False, "left": self.directions["left"], "right": self.directions["right"]}
         else:
             self.directions["down"] = False
             self.directions["up"] = False
 
-    def update(self, tiles, dt, camera):
-        if self.directions["left"]:
-            self.movement.x = -1
-            self.flip = True
-        elif self.directions["right"]:
-            self.movement.x = 1
-            self.flip = False
-        else:
-            self.movement.x = 0
+    def update_animation_state(self):
+        if any(self.directions.values()):  # If any direction is True, player is moving
+            if self.directions["up"]:
+                if self.directions["left"]:
+                    self.set_action("run/up-left")
+                elif self.directions["right"]:
+                    self.set_action("run/up-right")
+                else:
+                    self.set_action("run/up")
+            elif self.directions["down"]:
+                if self.directions["left"]:
+                    self.set_action("run/down-left")
+                elif self.directions["right"]:
+                    self.set_action("run/down-right")
+                else:
+                    self.set_action("run/down")
+            elif self.directions["left"]:
+                self.set_action("run/left")
+            elif self.directions["right"]:
+                self.set_action("run/right")
+        else:  # Player is idle, use last faced direction
+            if self.lastFacedDirection["up"]:
+                if self.lastFacedDirection["left"]:
+                    self.set_action("idle/up-left")
+                elif self.lastFacedDirection["right"]:
+                    self.set_action("idle/up-right")
+                else:
+                    self.set_action("idle/up")
+            elif self.lastFacedDirection["down"]:
+                if self.lastFacedDirection["left"]:
+                    self.set_action("idle/down-left")
+                elif self.lastFacedDirection["right"]:
+                    self.set_action("idle/down-right")
+                else:
+                    self.set_action("idle/down")
+            elif self.lastFacedDirection["left"]:
+                self.set_action("idle/left")
+            elif self.lastFacedDirection["right"]:
+                self.set_action("idle/right")
 
-        if self.directions["up"]:
-            self.movement.y = -1
-        elif self.directions["down"]:
-            self.movement.y = 1
-        else:
-            self.movement.y = 0
+    def update(self, tiles, dt, camera):
+        self.movement.x = -1 if self.directions["left"] else 1 if self.directions["right"] else 0
+        self.movement.y = -1 if self.directions["up"] else 1 if self.directions["down"] else 0
 
         if self.movement.length() > 0:
             self.movement.normalize()
 
         self.move(self.movement, tiles, dt)
+        self.update_animation_state()  # Update animation state based on movement and direction
         self.update_animation(dt)
+
         if self.cursor:
             self.cursor.update(self, camera)
         if self.input:

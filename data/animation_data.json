@@ -6,5 +6,69 @@
   "player/run": {
     "img_dur": 10,
     "loop": true
+  },
+  "player2/run/down": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/run/down-right": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/run/down-left": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/run/up": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/run/up-left": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/run/up-right": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/run/right": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/run/left": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/idle/down": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/idle/down-right": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/idle/down-left": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/idle/up": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/idle/up-left": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/idle/up-right": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/idle/right": {
+    "img_dur": 10,
+    "loop": true
+  },
+  "player2/idle/left": {
+    "img_dur": 10,
+    "loop": true
   }
 }

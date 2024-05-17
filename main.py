@@ -47,7 +47,7 @@ class Game():
         numOfPlayers = len(self.players.sprites())
 
         # player properties
-        player = Player(numOfPlayers, pos, [8, 13], "player", self.assets, layer)
+        player = Player(numOfPlayers, pos, [8, 13], "player2", self.assets, layer, animation="idle/down")
         cursor = UserCursor(pos, [9, 9], "cursor1", self.assets, layer=90, isScroll=False)
         input = self.inputDevices[input]
 
@@ -98,7 +98,7 @@ class Game():
         self.detect_inputs()
         self.create_player((40, 20), 1, layer=1)
         self.create_player((40, 20), 0, layer=1)
-        self.window.camera.set_target(self.players.get_entity(0))
+        self.window.camera.set_targets(self.players.get_entity(0), self.players.get_entity(1))
         while self.state == "running":
             self.clock.tick(self.settings.targetFPS)
             self.event_handler()

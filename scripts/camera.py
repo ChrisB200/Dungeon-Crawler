@@ -7,7 +7,7 @@ class Window():
         self.resolution = resolution
         self.display = pygame.display.set_mode(resolution)
 
-        self.cameras = [Camera(self.resolution, 4)]
+        self.cameras = [Camera(self.resolution, 4, (0, 0), minScale=0.7, maxScale=0.7)]
         self.currentCameraIndex = 0
     
     @property
@@ -35,7 +35,7 @@ class Window():
         return self.cameras[index]
 
 class Camera(pygame.sprite.Group):
-    def __init__(self, resolution, scale, offset=(0, 0)):
+    def __init__(self, resolution, scale, offset=(0, 0), panStrength=20, minScale=0.5, maxScale=0.5, zoomSpeed=1):
         super().__init__(self)
         self.resolution = resolution
         self.scale = scale
@@ -46,13 +46,12 @@ class Camera(pygame.sprite.Group):
         # tracking
         self.target = None  # [target, [offsetX, offsetY]]
         self.isPanning = False
-        self.panStrength = 20
-        self.offset = (0, 0)
+        self.panStrength = panStrength
         # scaling
         self.desiredScale = scale
-        self.minScale = scale - 0.5 
-        self.maxScale = scale + 0.5
-        self.zoomSpeed = 1
+        self.minScale = scale - minScale
+        self.maxScale = scale + maxScale
+        self.zoomSpeed = zoomSpeed
         # other
         self.renderOrder = {"x": False, "y": False, "layer": True}
         self.targets = ()

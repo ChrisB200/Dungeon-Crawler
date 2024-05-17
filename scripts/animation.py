@@ -35,30 +35,35 @@ class Animation:
     
 # Loads an image using its location   
 def load_image(path):
-    img = pygame.image.load(path).convert()
+    img = pygame.image.load(path).convert_alpha()
     img.set_colorkey((0, 0, 0))
     return img
     
-# Loads a group of images in a allocation
+# Loads a group of images in a directory
 def load_images(path):
     images = []
     for img_name in sorted(os.listdir(path)):
-        images.append(load_image(path + '/' + img_name))
+        img_path = os.path.join(path, img_name)
+        if os.path.isfile(img_path):
+            img = load_image(img_path)
+            if img:
+                images.append(img)
     return images
 
-    
 def load_animations(base_path, data="data/animation_data.json"):
     assets = {}
     with open(data, "rb") as file:
         data = json.load(file)
-
-    for group in os.listdir(base_path):
-        for folder in os.listdir(base_path+group):
-            for animation in os.listdir(base_path+group+"/"+folder):
-                name = f"{folder}/{animation}"
-                if name in data:
-                    assets[name] = Animation(load_images(f"{base_path}{group}/{folder}/{animation}"), data[name]["img_dur"], data[name]["loop"])
-                else:
-                    assets[name] = Animation(load_images(f"{base_path}{group}/{folder}/{animation}"))
-
+    
+    for root, dirs, files in os.walk(base_path):
+        for dir_name in dirs:
+            dir_path = os.path.join(root, dir_name)
+            relative_path = os.path.relpath(dir_path, base_path).replace("\\", "/")
+            print(f"Loading animations from directory: {dir_path}")  # Debug info
+            if relative_path in data:
+                assets[relative_path] = Animation(load_images(dir_path), data[relative_path]["img_dur"], data[relative_path]["loop"])
+            else:
+                assets[relative_path] = Animation(load_images(dir_path))
+    
+    print(assets.keys())
     return assets
