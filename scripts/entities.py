@@ -10,6 +10,8 @@ from scripts.input import Controller, Keyboard
 from scripts.animation import Animation
 from scripts.camera import Camera
 
+logger = logging.getLogger(__name__)
+
 class ModifiedSpriteGroup(pygame.sprite.Group):
     def __init__(self):
         super().__init__()
@@ -289,7 +291,6 @@ class UserCursor(Entity):
             self.set_transform(x, y)
         else:
             x, y = pygame.mouse.get_pos()
-            print(x, y)    
             self.set_transform(x // camera.scale, y // camera.scale)
 
         self.cursor_in_space(camera.scale)

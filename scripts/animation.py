@@ -2,6 +2,9 @@
 import pygame
 import json
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Animation System
 class Animation:
@@ -59,11 +62,11 @@ def load_animations(base_path, data="data/animation_data.json"):
         for dir_name in dirs:
             dir_path = os.path.join(root, dir_name)
             relative_path = os.path.relpath(dir_path, base_path).replace("\\", "/")
-            print(f"Loading animations from directory: {dir_path}")  # Debug info
+            logger.info("Loading animations from directory: %s", dir_path)  # Debug info
             if relative_path in data:
                 assets[relative_path] = Animation(load_images(dir_path), data[relative_path]["img_dur"], data[relative_path]["loop"])
             else:
                 assets[relative_path] = Animation(load_images(dir_path))
     
-    print(assets.keys())
+    logger.debug("Animation keys added: %s", assets.keys())  # 
     return assets

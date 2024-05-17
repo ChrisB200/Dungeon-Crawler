@@ -1,6 +1,9 @@
 # Modules
 import pygame
 from pygame.constants import *
+import logging
+
+logger = logging.getLogger(__name__)
     
 class Window():
     def __init__(self, resolution, fullscreen=FULLSCREEN):
@@ -75,7 +78,6 @@ class Camera(pygame.sprite.Group):
     def draw_by_layers(self):
         for sprite in sorted(self.sprites(), key=lambda sprite: sprite.camLayer):
             self.calculate_scroll(sprite)
-            print(sprite.tag)
 
     # orders sprite by x value
     def draw_by_x(self):

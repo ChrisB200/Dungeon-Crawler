@@ -2,6 +2,10 @@
 import pygame
 from dataclasses import dataclass
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @dataclass
 class Controls:
     moveRight: int
@@ -17,6 +21,8 @@ class Controller:
         # parameters
         self.controls = controls
         self.joystick = joystick
+        self.guid = joystick.get_guid()
+        self.name = joystick.get_name()
         
         # controller sticks
         self.leftStick = pygame.math.Vector2()
@@ -24,6 +30,12 @@ class Controller:
 
         # attributes
         self.deadzone = 0.1
+
+    # reassigns the joystick to the controller
+    def reassign_joystick(self, joystick):
+        self.joystick = joystick
+        self.guid = joystick.get_guid()
+        self.name = joystick.get_name()
 
     # controls the deadzone - input below deadzone value is set to 0 to stop stick drift
     def control_deadzone(self, deadzone, *axes):
@@ -51,6 +63,7 @@ class Controller:
 class Keyboard:
     def __init__(self, controls:Controls):
         self.controls = controls
+        self.name = "keyboard"
 
     def update(self):
         pass

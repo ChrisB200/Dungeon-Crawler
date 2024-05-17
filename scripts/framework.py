@@ -2,6 +2,10 @@
 import pygame
 from pygame.constants import *
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 MENU = 0
 PLAYING = 1
 PAUSED = 2

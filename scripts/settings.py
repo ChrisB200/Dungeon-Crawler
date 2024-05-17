@@ -2,9 +2,12 @@
 import pygame
 import pickle
 from pygame.constants import *
+import logging
 
 # Scripts
 from scripts.input import Controls
+
+logger = logging.getLogger(__name__)
 
 class Settings:
     def __init__(self):

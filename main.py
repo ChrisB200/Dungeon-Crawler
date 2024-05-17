@@ -10,10 +10,19 @@ from scripts.settings import Settings
 from scripts.entities import Player, ModifiedSpriteGroup, UserCursor
 from scripts.animation import load_animations
 from scripts.input import Controller, Keyboard, controller_check
+from scripts.constants import BASE_IMG_PATH
+
+# configure the logger
+logging.basicConfig(
+    level=logging.INFO,  # set the log level
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Log format
+    handlers=[
+        logging.FileHandler("game.log"),  # Log to a file
+        logging.StreamHandler()          # Also log to console
+    ]
+)
 
 logger = logging.getLogger(__name__)
-
-BASE_IMG_PATH = "data/images/"
 
 class MainMenu():
     pass
@@ -63,11 +72,15 @@ class Game():
         self.inputDevices.append(Keyboard(self.settings.keyboard))
 
         try:
-            self.joysticks = controller_check()
-            for controller in self.joysticks:
-                self.inputDevices.append(Controller(self.settings.controller, controller)) 
+            joysticks = controller_check()
+            for joystick in joysticks:
+                controller = Controller(self.settings.controller, joystick)
+                self.inputDevices.append(controller) 
+                logger.info("Detected controller, name: %s, guid: %s", controller.name, controller.guid)
         except:
-            print("no controllers detected")
+            logger.info("No controllers detected")
+
+        logger.info("Detected %s input devices", len(self.inputDevices))
     
     # draws the window
     def draw(self):
