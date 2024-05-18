@@ -6,44 +6,43 @@ import logging
 logger = logging.getLogger(__name__)
     
 class Window():
-    def __init__(self, resolution, fullscreen=FULLSCREEN):
+    def __init__(self, resolution, flags=pygame.FULLSCREEN):
         self.resolution = resolution
-        self.display = pygame.display.set_mode(resolution)
+        self.display = pygame.display.set_mode(resolution, flags=flags)
 
-        self.cameras = [Camera(self.resolution, 4, (0, 0), minScale=0.7, maxScale=0.7)]
-        self.currentCameraIndex = 0
+        self.world = Camera(self.resolution, 4, (0, 0), minScale=1, maxScale=1, panStrength=10)
+        self.foreground = Camera(self.resolution, 1)
     
     @property
-    def camera(self):
-        return self.cameras[self.currentCameraIndex]
+    def worldScreen(self):
+        return self.world.screen
     
     @property
-    def screen(self):
-        return self.camera.screen
+    def foregroundScreen(self):
+        return self.foreground.screen
     
     def update(self):
-        self.camera.update()
+        self.world.update()
+        self.foreground.update()
 
-    def draw(self, *args, **kwargs):
-        self.camera.draw(*args, **kwargs)
-        self.display.blit(pygame.transform.scale(self.screen, self.resolution), (0, 0))
-        
-    def add_camera(self, camera):
-        self.cameras.append(camera)
+    def draw_world(self, *args, **kwargs):
+        self.world.draw(*args, **kwargs)
 
-    def change_camera(self, increment):
-        self.currentCameraIndex += increment
+    def draw_foreground(self, *args, **kwargs):
+        self.foreground.draw(*args, **kwargs)
 
-    def get_camera(self, index):
-        return self.cameras[index]
+    def draw(self):
+        self.display.fill((0, 0, 0))
+        self.display.blit(pygame.transform.scale(self.worldScreen, self.resolution), (0, 0))
+        self.display.blit(self.foregroundScreen, (0, 0))
 
 class Camera(pygame.sprite.Group):
-    def __init__(self, resolution, scale, offset=(0, 0), panStrength=20, minScale=0.5, maxScale=0.5, zoomSpeed=1):
+    def __init__(self, resolution, scale, offset=(0, 0), panStrength=20, minScale=1, maxScale=1, zoomSpeed=1):
         super().__init__(self)
         self.resolution = resolution
         self.scale = scale
         self.offset = offset
-        self.screen = pygame.Surface((self.resolution[0] / self.scale, self.resolution[1] / self.scale))
+        self.screen = pygame.Surface((self.resolution[0] / self.scale, self.resolution[1] / self.scale), pygame.SRCALPHA | pygame.HWSURFACE)
         # scroll
         self.trueScroll = pygame.math.Vector2()
         # tracking
@@ -69,6 +68,8 @@ class Camera(pygame.sprite.Group):
         return self.screen.get_size()[0], self.screen.get_size()[1]
     
     def calculate_scroll(self, sprite):
+        sprite.transform.x = int(sprite.transform.x)
+        sprite.transform.y = int(sprite.transform.y)
         if sprite.isScroll:
             self.screen.blit(sprite.image, (sprite.transform.x - self.scroll.x, sprite.transform.y - self.scroll.y))
         else:
@@ -99,6 +100,8 @@ class Camera(pygame.sprite.Group):
     def draw_background(self, **kwargs):
         if "fill" in kwargs:
             self.screen.fill(kwargs["fill"])
+        else:
+            self.screen.fill((0, 0, 0, 0))  # fill with transparency by default
 
     # sets a target sprite
     def set_target(self, target, offset=(0, 0)):

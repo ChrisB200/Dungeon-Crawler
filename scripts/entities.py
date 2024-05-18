@@ -140,7 +140,7 @@ class Player(PhysicsEntity):
     def __init__(self, id:int, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0, isScroll=True, animation="idle"):
         super().__init__(transform, size, tag, assets, layer, isScroll, animation)
         self.id = id
-        self.speed = 0
+        self.speed = 150
         self.weapon = None
         self.directions = {"up": False, "down": False, "left": False, "right": False}
         self.lastFacedDirection = {"up": False, "down": False, "left": False, "right": False}
@@ -246,8 +246,11 @@ class Player(PhysicsEntity):
                 self.set_action("idle/right")
 
     def update(self, tiles, dt, camera):
-        self.movement.x = -1 if self.directions["left"] else 1 if self.directions["right"] else 0
-        self.movement.y = -1 if self.directions["up"] else 1 if self.directions["down"] else 0
+        self.movement.x = (-1 if self.directions["left"] else 1 if self.directions["right"] else 0) * self.speed
+        self.movement.y = (-1 if self.directions["up"] else 1 if self.directions["down"] else 0) * self.speed
+
+        if isinstance(self.input, Controller):
+            self.movement = self.input.leftStick.copy() * self.speed
 
         if self.movement.length() > 0:
             self.movement.normalize()

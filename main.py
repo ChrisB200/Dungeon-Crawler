@@ -41,7 +41,7 @@ class Game():
 
         # core properties
         self.settings = Settings()
-        self.window = Window(self.settings.resolution)
+        self.window = Window(self.settings.resolution, flags=pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
         self.clock = pygame.time.Clock()
         self.assets = load_animations(BASE_IMG_PATH)
         self.inputDevices = []
@@ -49,7 +49,11 @@ class Game():
         # game properties
         self.entities = ModifiedSpriteGroup()
         self.players = ModifiedSpriteGroup()
+        self.weapons = ModifiedSpriteGroup()
+        self.cursors = ModifiedSpriteGroup()
         self.state = "running"
+
+        self.dt = 1
     
     # creates a player and assigns them a controller
     def create_player(self, pos, input=0, layer=0):
@@ -64,7 +68,7 @@ class Game():
         player.input = input
         player.cursor = cursor
         self.players.add(player)
-        self.entities.add(cursor)
+        self.cursors.add(cursor)
 
     # detects input devices and appends them
     def detect_inputs(self):
@@ -81,10 +85,15 @@ class Game():
             logger.info("No controllers detected")
 
         logger.info("Detected %s input devices", len(self.inputDevices))
+
+    def calculate_deltatime(self):
+        self.dt = self.clock.tick() / 1000
     
     # draws the window
     def draw(self):
-        self.window.draw(self.players, self.entities, fill=(100, 100, 100))
+        self.window.draw_world(self.players, self.entities, fill=(150, 150, 150))
+        self.window.draw_foreground(self.cursors)
+        self.window.draw()
         pygame.display.update()
     
     def update(self):
@@ -92,31 +101,28 @@ class Game():
 
         player: Player
         for player in self.players.sprites():
-            player.update([], 1, self.window.camera)
+            player.update([], self.dt, self.window.foreground)
 
     def event_handler(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.state = ""
-            if event.type == pygame.KEYDOWN:
-                if event.key == K_RIGHT:
-                    self.window.change_camera(1)
-                if event.key == K_LEFT:
-                    self.window.change_camera(-1)
 
             for player in self.players:
                 player.input_events(event)
 
     def run(self):
         self.detect_inputs()
-        self.create_player((40, 20), 1, layer=1)
         self.create_player((40, 20), 0, layer=1)
-        self.window.camera.set_targets(self.players.get_entity(0), self.players.get_entity(1))
+        self.create_player((40, 20), 1, layer=1)
+        self.window.world.set_targets(self.players.get_entity(0), self.players.get_entity(1))
         while self.state == "running":
-            self.clock.tick(self.settings.targetFPS)
+            pygame.mouse.set_visible(False)
+            self.calculate_deltatime()
             self.event_handler()
             self.update()
             self.draw()
+            print(int(self.clock.get_fps()))
             
 if __name__ == "__main__":
     game = Game()
