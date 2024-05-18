@@ -18,7 +18,7 @@ def clip(surf, x1, y1, x2, y2):
 
 # Rotates an image arount a pivot position
 def blit_rotate(image, pos, originPos, angle):
-    image_rect = image.get_rect(topleft = (pos[0] - originPos[0], pos[1]-originPos[1]))
+    image_rect = image.get_rect(topleft = (pos.x - originPos.x, pos.y - originPos.y))
     offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center
     rotated_offset = offset_center_to_pivot.rotate(-angle)
     rotated_image_center = (pos[0] - rotated_offset.x, pos[1] - rotated_offset.y)

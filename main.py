@@ -10,6 +10,7 @@ from scripts.settings import Settings
 from scripts.entities import Player, ModifiedSpriteGroup, UserCursor
 from scripts.animation import load_animations
 from scripts.input import Controller, Keyboard, controller_check
+from scripts.weapons import Weapon
 from scripts.constants import BASE_IMG_PATH
 
 # configure the logger
@@ -50,6 +51,7 @@ class Game():
         self.entities = ModifiedSpriteGroup()
         self.players = ModifiedSpriteGroup()
         self.weapons = ModifiedSpriteGroup()
+        self.bullets = ModifiedSpriteGroup()
         self.cursors = ModifiedSpriteGroup()
         self.state = "running"
 
@@ -60,15 +62,18 @@ class Game():
         numOfPlayers = len(self.players.sprites())
 
         # player properties
-        player = Player(numOfPlayers, pos, [8, 13], "player2", self.assets, layer, animation="idle/down")
+        player = Player(numOfPlayers, pos, [16, 16], "player2", self.assets, layer, animation="idle/down")
         cursor = UserCursor(pos, [9, 9], "cursor1", self.assets, layer=90, isScroll=False)
+        weapon = Weapon(pos, (8, 8), "gun", self.assets)
         input = self.inputDevices[input]
 
         # assignment of the properties
         player.input = input
         player.cursor = cursor
+        player.weapon = weapon
         self.players.add(player)
         self.cursors.add(cursor)
+        self.weapons.add(weapon)
 
     # detects input devices and appends them
     def detect_inputs(self):
@@ -91,7 +96,7 @@ class Game():
     
     # draws the window
     def draw(self):
-        self.window.draw_world(self.players, self.entities, fill=(150, 150, 150))
+        self.window.draw_world(self.players, self.entities, self.weapons, fill=(150, 150, 150))
         self.window.draw_foreground(self.cursors)
         self.window.draw()
         pygame.display.update()
@@ -122,7 +127,7 @@ class Game():
             self.event_handler()
             self.update()
             self.draw()
-            print(int(self.clock.get_fps()))
+            #print(int(self.clock.get_fps()))
             
 if __name__ == "__main__":
     game = Game()

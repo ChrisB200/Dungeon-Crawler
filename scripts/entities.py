@@ -29,6 +29,7 @@ class Entity(pygame.sprite.Sprite):
         self.assets = assets
         self.camLayer = camLayer
         self.isScroll = isScroll
+        self.rotation = 0
 
         # movement
         self.flip = False
@@ -52,7 +53,7 @@ class Entity(pygame.sprite.Sprite):
     
     @property
     def image(self):
-        return pygame.transform.flip(self.animation.img(), self.flip, False)
+        return pygame.transform.rotate(pygame.transform.flip(self.animation.img(), self.flip, False), self.rotation)
     
     # sets an animation action
     def set_action(self, action):
@@ -68,7 +69,7 @@ class Entity(pygame.sprite.Sprite):
     def get_center(self):
         x = self.transform.x - (self.width // 2)
         y = self.transform.y - (self.height // 2)
-        return [x, y]
+        return pygame.math.Vector2(x, y)
     
     # changes the camera layer
     def change_layer(self, increment):
@@ -86,11 +87,11 @@ class Entity(pygame.sprite.Sprite):
         return angle
     
     # gets the angle between an entity and a point
-    def get_point_angle(self, point, scroll=[0, 0], offset=0, centered=True):
-        transform = [self.transform.x - scroll[0], self.transform.y - scroll[1]]
+    def get_point_angle(self, point, scroll=pygame.math.Vector2(), offset=0, centered=True):
+        transform = self.transform - scroll
         if centered:
             transform = get_center(transform, self.size)
-        radians = math.atan2(point[1] - transform[1], point[0] - transform[0])
+        radians = math.atan2(point.y - transform.y, point.x - transform.x)
         return -math.degrees(radians) + offset
     
     # gets the distance between an entity and a point
@@ -146,6 +147,7 @@ class Player(PhysicsEntity):
         self.lastFacedDirection = {"up": False, "down": False, "left": False, "right": False}
         self.input = None
         self.cursor = None
+        self.weapon = None
         self.set_action("idle/down")
 
     def input_events(self, event):
@@ -263,11 +265,13 @@ class Player(PhysicsEntity):
             self.cursor.update(self, camera)
         if self.input:
             self.input.update()
+        if self.weapon:
+            self.weapon.player_update(self, camera)
 
 class UserCursor(Entity):
     def __init__(self, transform, size, tag, assets, layer=0, isScroll=True):
         super().__init__(transform, size, tag, assets, layer, isScroll)
-        self.location = [1, 1]
+        self.location = pygame.math.Vector2(0, 0)
 
     def set_transform(self, x, y):
         self.transform.x = x
@@ -299,5 +303,5 @@ class UserCursor(Entity):
         self.cursor_in_space(camera.scale)
 
     def cursor_in_space(self, camera_scale):
-        self.location[0] = self.transform[0] // camera_scale
-        self.location[1] = self.transform[1] // camera_scale
+        self.location.x = self.transform.x // camera_scale
+        self.location.y = self.transform.y // camera_scale
