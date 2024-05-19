@@ -21,7 +21,7 @@ def blit_rotate(image, pos, originPos, angle):
     image_rect = image.get_rect(topleft = (pos.x - originPos.x, pos.y - originPos.y))
     offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center
     rotated_offset = offset_center_to_pivot.rotate(-angle)
-    rotated_image_center = (pos[0] - rotated_offset.x, pos[1] - rotated_offset.y)
+    rotated_image_center = (pos.x - rotated_offset.x, pos.y - rotated_offset.y)
     rotated_image = pygame.transform.rotate(image, angle)
     rotated_image_rect = rotated_image.get_rect(center = rotated_image_center)
     return (rotated_image, rotated_image_rect)
@@ -38,9 +38,9 @@ def blit_center(display ,pos):
 
 # returns center of something
 def get_center(pos, size):
-    x = pos[0] + int(size[0] / 2)
-    y = pos[1] + int(size[1] / 2)
-    return [x,y]
+    x = pos.x + int(size[0] / 2)
+    y = pos.y + int(size[1] / 2)
+    return pygame.math.Vector2(x, y)
 
 # Flips an image
 def flip_img(img,boolean=True, boolean_2=False):

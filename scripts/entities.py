@@ -45,7 +45,7 @@ class Entity(pygame.sprite.Sprite):
     
     @property
     def width(self):
-        return self.size[1]
+        return self.size[0]
     
     @property
     def height(self):
@@ -87,10 +87,10 @@ class Entity(pygame.sprite.Sprite):
         return angle
     
     # gets the angle between an entity and a point
-    def get_point_angle(self, point, scroll=pygame.math.Vector2(), offset=0, centered=True):
+    def get_point_angle(self, point, scroll=pygame.math.Vector2(), offset=0, centered=False):
         transform = self.transform - scroll
         if centered:
-            transform = get_center(transform, self.size)
+            transform = self.get_center()
         radians = math.atan2(point.y - transform.y, point.x - transform.x)
         return -math.degrees(radians) + offset
     
@@ -298,7 +298,7 @@ class UserCursor(Entity):
             self.set_transform(x, y)
         else:
             x, y = pygame.mouse.get_pos()
-            self.set_transform(x // camera.scale, y // camera.scale)
+            self.set_transform(x, y)
 
         self.cursor_in_space(camera.scale)
 

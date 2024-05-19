@@ -57,6 +57,7 @@ class Camera(pygame.sprite.Group):
         # other
         self.renderOrder = {"x": False, "y": False, "layer": True}
         self.targets = ()
+        self.queue = []
 
     @property
     def scroll(self):
@@ -90,6 +91,9 @@ class Camera(pygame.sprite.Group):
         for sprite in sorted(self.sprites(), key=lambda sprite: sprite.transform.y):
             self.calculate_scroll(sprite)
 
+    def draw_line(self, colour, start, end, width=1):
+        self.queue.append(("line", colour, start, end, width))
+
     # seperates sprites out of groups and adds them into a new group
     def add_sprites(self, *args):
         for group in args:
@@ -102,6 +106,12 @@ class Camera(pygame.sprite.Group):
             self.screen.fill(kwargs["fill"])
         else:
             self.screen.fill((0, 0, 0, 0))  # fill with transparency by default
+
+    def draw_queue(self):
+        for item in self.queue:
+            if item[0] == "line":
+                pygame.draw.line(self.screen, item[1], item[2], item[3], item[4])
+                self.queue.remove(item)
 
     # sets a target sprite
     def set_target(self, target, offset=(0, 0)):
@@ -190,6 +200,8 @@ class Camera(pygame.sprite.Group):
                 self.draw_by_x
             case {"y": True}:
                 self.draw_by_y
+
+        self.draw_queue()
 
         # empty sprites since they get re added
         self.empty()
