@@ -35,6 +35,7 @@ class Entity(pygame.sprite.Sprite):
         self.flip = False
         self.directions: dict[str, bool] = {"left" : False, "right": False, "up": False, "down": False}
         self.movement = pygame.math.Vector2()
+        self.speed = 100
         
         # animation
         self.action: str = ""
@@ -53,7 +54,7 @@ class Entity(pygame.sprite.Sprite):
     
     @property
     def image(self):
-        return pygame.transform.rotate(pygame.transform.flip(self.animation.img(), self.flip, False), self.rotation)
+        return pygame.transform.rotate(pygame.transform.flip(self.animation.img(), self.flip, False), self.rotation).convert_alpha()
     
     # sets an animation action
     def set_action(self, action):
@@ -67,8 +68,8 @@ class Entity(pygame.sprite.Sprite):
 
     # gets the center of the entity
     def get_center(self):
-        x = self.transform.x - (self.width // 2)
-        y = self.transform.y - (self.height // 2)
+        x = self.transform.x + (self.width // 2)
+        y = self.transform.y + (self.height // 2)
         return pygame.math.Vector2(x, y)
     
     # changes the camera layer
@@ -110,7 +111,7 @@ class PhysicsEntity(Entity):
     # Checks for collisions based on movement direction
     def move(self, movement, tiles, dt):
         # x-axis
-        self.transform.x += movement[0] * dt
+        self.transform.x += int(movement[0] * dt)
         self.rect.x = int(self.transform.x)
         tileCollisions = collision_test(self.rect, tiles)
         objectCollisions = {'bottom': False, 'top': False, 'left': False, 'right': False}
@@ -124,7 +125,7 @@ class PhysicsEntity(Entity):
         self.transform.x = self.rect.x
 
         # y-axis
-        self.transform.y += movement[1] * dt
+        self.transform.y += int(movement[1] * dt)
         self.rect.y = int(self.transform.y)
         tileCollisions = collision_test(self.rect, tiles)
         for tile in tileCollisions:
@@ -150,14 +151,14 @@ class Player(PhysicsEntity):
         self.weapon = None
         self.set_action("idle/down")
 
-    def input_events(self, event):
+    def input_events(self, event, bullets):
         if self.input is not None:
             if isinstance(self.input, Controller):
                 self.controller_input(event)
             else:
-                self.keyboard_input(event)
+                self.keyboard_input(event, bullets)
 
-    def keyboard_input(self, event):
+    def keyboard_input(self, event, bullets):
         if event.type == pygame.KEYDOWN:
             if event.key == self.input.controls.moveLeft:
                 self.directions["left"] = True
@@ -181,6 +182,11 @@ class Player(PhysicsEntity):
             if event.key == self.input.controls.moveDown:
                 self.directions["down"] = False
                 self.lastFacedDirection = {"up": False, "down": True, "left": self.directions["left"], "right": self.directions["right"]}
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == self.input.controls.shoot:
+                if self.weapon:
+                    self.weapon.shoot(bullets)
 
     def controller_input(self, event):
         if self.input.leftStick.x > 0:
@@ -247,7 +253,7 @@ class Player(PhysicsEntity):
             elif self.lastFacedDirection["right"]:
                 self.set_action("idle/right")
 
-    def update(self, tiles, dt, camera):
+    def update(self, tiles, dt, camera: Camera, bullets):
         self.movement.x = (-1 if self.directions["left"] else 1 if self.directions["right"] else 0) * self.speed
         self.movement.y = (-1 if self.directions["up"] else 1 if self.directions["down"] else 0) * self.speed
 
@@ -267,6 +273,7 @@ class Player(PhysicsEntity):
             self.input.update()
         if self.weapon:
             self.weapon.player_update(self, camera)
+        #camera.draw_rect((255, 0, 0), self.rect)
 
 class UserCursor(Entity):
     def __init__(self, transform, size, tag, assets, layer=0, isScroll=True):

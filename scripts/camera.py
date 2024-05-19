@@ -94,6 +94,9 @@ class Camera(pygame.sprite.Group):
     def draw_line(self, colour, start, end, width=1):
         self.queue.append(("line", colour, start, end, width))
 
+    def draw_rect(self, colour, rect):
+        self.queue.append(("rect", colour, rect))
+
     # seperates sprites out of groups and adds them into a new group
     def add_sprites(self, *args):
         for group in args:
@@ -110,8 +113,13 @@ class Camera(pygame.sprite.Group):
     def draw_queue(self):
         for item in self.queue:
             if item[0] == "line":
-                pygame.draw.line(self.screen, item[1], item[2], item[3], item[4])
-                self.queue.remove(item)
+                pygame.draw.line(self.screen, item[1], item[2] - self.scroll.x, item[3] - self.scroll.y, item[4])
+            if item[0] == "rect":
+                rect = item[2]
+                rect.x = rect.x - self.scroll.x
+                rect.y = rect.y - self.scroll.y
+                pygame.draw.rect(self.screen, item[1], rect)
+            self.queue.remove(item)
 
     # sets a target sprite
     def set_target(self, target, offset=(0, 0)):

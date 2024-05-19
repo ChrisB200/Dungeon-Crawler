@@ -64,13 +64,15 @@ class Game():
         # player properties
         player = Player(numOfPlayers, pos, [16, 16], "player2", self.assets, layer, animation="idle/down")
         cursor = UserCursor(pos, [9, 9], "cursor1", self.assets, layer=90, isScroll=False)
-        weapon = Weapon(pos, (8, 8), "gun", self.assets, rotationOffset=90, pivot=(0, 0))
+        weapon = Weapon(pos, (8, 8), "gun", self.assets, rotationOffset=90, pivot=(2, 0))
         input = self.inputDevices[input]
 
         # assignment of the properties
         player.input = input
         player.cursor = cursor
         player.weapon = weapon
+
+        # add to sprite groups
         self.players.add(player)
         self.cursors.add(cursor)
         self.weapons.add(weapon)
@@ -96,7 +98,7 @@ class Game():
     
     # draws the window
     def draw(self):
-        self.window.draw_world(self.players, self.entities, self.weapons, fill=(150, 150, 150))
+        self.window.draw_world(self.players, self.entities, self.weapons, self.bullets, fill=(150, 150, 150))
         self.window.draw_foreground(self.cursors)
         self.window.draw()
         pygame.display.update()
@@ -105,8 +107,11 @@ class Game():
         self.window.update()
 
         player: Player
-        for player in self.players.sprites():
-            player.update([], self.dt, self.window.world)
+        for player in self.players:
+            player.update([], self.dt, self.window.world, self.bullets)
+        
+        for bullet in self.bullets:
+            bullet.update(self.dt)
 
     def event_handler(self):
         for event in pygame.event.get():
@@ -114,7 +119,7 @@ class Game():
                 self.state = ""
 
             for player in self.players:
-                player.input_events(event)
+                player.input_events(event, self.bullets)
 
     def run(self):
         self.detect_inputs()
