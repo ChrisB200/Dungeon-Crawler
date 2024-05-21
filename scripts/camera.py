@@ -6,6 +6,9 @@ import logging
 logger = logging.getLogger(__name__)
     
 class Window():
+    """
+    A class that manages the drawing of the window. This allows for pixel art to be easily upscaled. This class has 2 cameras. A world camera and a foreground camera. The world camera should be for entities in the world which are affected by scale. The foreground camera should be for elements like the cursor.
+    """
     def __init__(self, resolution, flags=pygame.FULLSCREEN):
         self.resolution = resolution
         self.display = pygame.display.set_mode(resolution, flags=flags)
@@ -69,8 +72,6 @@ class Camera(pygame.sprite.Group):
         return self.screen.get_size()[0], self.screen.get_size()[1]
     
     def calculate_scroll(self, sprite):
-        sprite.transform.x = int(sprite.transform.x)
-        sprite.transform.y = int(sprite.transform.y)
         if sprite.isScroll:
             self.screen.blit(sprite.image, (sprite.transform.x - self.scroll.x, sprite.transform.y - self.scroll.y))
         else:
@@ -112,13 +113,17 @@ class Camera(pygame.sprite.Group):
 
     def draw_queue(self):
         for item in self.queue:
-            if item[0] == "line":
-                pygame.draw.line(self.screen, item[1], item[2] - self.scroll.x, item[3] - self.scroll.y, item[4])
-            if item[0] == "rect":
-                rect = item[2]
-                rect.x = rect.x - self.scroll.x
-                rect.y = rect.y - self.scroll.y
-                pygame.draw.rect(self.screen, item[1], rect)
+            match item[0]:
+                case "line":
+                    pygame.draw.line(self.screen, item[1], item[2] - self.scroll, item[3] - self.scroll, item[4])
+                    pygame.draw.circle(self.screen, (255, 0, 0), item[2] - self.scroll, 3)
+                    pygame.draw.circle(self.screen, (0, 255, 0), item[3] - self.scroll, 3)
+                case "rect":
+                    rect = item[2]
+                    rect.x = rect.x - self.scroll.x
+                    rect.y = rect.y - self.scroll.y
+                    pygame.draw.rect(self.screen, item[1], rect)
+
             self.queue.remove(item)
 
     # sets a target sprite
@@ -212,7 +217,8 @@ class Camera(pygame.sprite.Group):
         self.draw_queue()
 
         # empty sprites since they get re added
-        self.empty()
+        if self.sprites():
+            self.empty()
 
     # handles all the updates within the camera class
     def update(self):

@@ -10,7 +10,7 @@ from scripts.settings import Settings
 from scripts.entities import Player, ModifiedSpriteGroup, UserCursor
 from scripts.animation import load_animations
 from scripts.input import Controller, Keyboard, controller_check
-from scripts.weapons import Weapon
+from scripts.weapons import *
 from scripts.constants import BASE_IMG_PATH
 
 # configure the logger
@@ -42,20 +42,25 @@ class Game():
 
         # core properties
         self.settings = Settings()
-        self.window = Window(self.settings.resolution, flags=pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
+        self.window = Window(self.settings.resolution, flags=pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED)
         self.clock = pygame.time.Clock()
         self.assets = load_animations(BASE_IMG_PATH)
         self.inputDevices = []
+        self.dt = 1
 
         # game properties
         self.entities = ModifiedSpriteGroup()
         self.players = ModifiedSpriteGroup()
         self.weapons = ModifiedSpriteGroup()
-        self.bullets = ModifiedSpriteGroup()
         self.cursors = ModifiedSpriteGroup()
+        self.bullets = ModifiedSpriteGroup()
         self.state = "running"
 
-        self.dt = 1
+        # bullets
+        self.DEFAULT_BULLET = Bullet((0, 0), (5, 2), "bullet1", self.assets, 0)
+
+        # weapons
+        self.DEFAULT_WEAPON = Weapon((0, 0), (8, 6), "gun", self.assets, bullet=self.DEFAULT_BULLET, camLayer=5, pivot=(-4, 0))
     
     # creates a player and assigns them a controller
     def create_player(self, pos, input=0, layer=0):
@@ -64,7 +69,8 @@ class Game():
         # player properties
         player = Player(numOfPlayers, pos, [16, 16], "player2", self.assets, layer, animation="idle/down")
         cursor = UserCursor(pos, [9, 9], "cursor1", self.assets, layer=90, isScroll=False)
-        weapon = Weapon(pos, (8, 8), "gun", self.assets, rotationOffset=90, pivot=(2, 0))
+        weapon = self.DEFAULT_WEAPON.copy()
+        weapon.set_transform(pos)
         input = self.inputDevices[input]
 
         # assignment of the properties
@@ -108,7 +114,7 @@ class Game():
 
         player: Player
         for player in self.players:
-            player.update([], self.dt, self.window.world, self.bullets)
+            player.update([], self.dt, self.window.world)
         
         for bullet in self.bullets:
             bullet.update(self.dt)
@@ -119,7 +125,7 @@ class Game():
                 self.state = ""
 
             for player in self.players:
-                player.input_events(event, self.bullets)
+                player.event_handler(event, self)
 
     def run(self):
         self.detect_inputs()
