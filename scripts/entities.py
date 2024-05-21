@@ -231,6 +231,7 @@ class Player(PhysicsEntity):
     def update_animation_state(self):
         if any(self.directions.values()):  # If any direction is True, player is moving
             if self.directions["up"]:
+                if self.weapon: self.weapon.camLayer = self.camLayer - 1
                 if self.directions["left"]:
                     self.set_action("run/up-left")
                 elif self.directions["right"]:
@@ -238,6 +239,7 @@ class Player(PhysicsEntity):
                 else:
                     self.set_action("run/up")
             elif self.directions["down"]:
+                if self.weapon: self.weapon.camLayer = self.camLayer + 1
                 if self.directions["left"]:
                     self.set_action("run/down-left")
                 elif self.directions["right"]:
@@ -245,8 +247,10 @@ class Player(PhysicsEntity):
                 else:
                     self.set_action("run/down")
             elif self.directions["left"]:
+                if self.weapon: self.weapon.camLayer = self.camLayer + 1
                 self.set_action("run/left")
             elif self.directions["right"]:
+                if self.weapon: self.weapon.camLayer = self.camLayer + 1
                 self.set_action("run/right")
         else:  # Player is idle, use last faced direction
             if self.lastFacedDirection["up"]:
@@ -287,7 +291,7 @@ class Player(PhysicsEntity):
         if self.input:
             self.input.update()
         if self.weapon:
-            self.weapon.update(self, camera)
+            self.weapon.update(self, camera, dt)
         #camera.draw_rect((255, 0, 0), self.rect)
 
 class UserCursor(Entity):

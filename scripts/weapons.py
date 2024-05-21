@@ -41,9 +41,10 @@ class Weapon(Entity):
         game.bullets.add(bullet)
 
     # update the position of the weapon to the players 
-    def update(self, entity, camera):
+    def update(self, entity, camera, dt):
         self.transform = entity.get_center().copy()
         self.rotate_at_cursor(entity.cursor, camera)
+        self.animation.update(dt)
 
 class Bullet(PhysicsEntity):
     def __init__(self, transform, size, tag, assets, rotation, camLayer=1, isScroll=True, animation="idle"):
@@ -70,3 +71,4 @@ class Bullet(PhysicsEntity):
 
     def update(self, dt):
         self.move(self.direction, [], dt)
+        self.animation.update(dt)
