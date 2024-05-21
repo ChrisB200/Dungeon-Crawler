@@ -70,5 +70,9 @@
   "player2/idle/left": {
     "img_dur": 0.1,
     "loop": true
+  },
+  "cursor/idle": {
+    "img_dur": 0.1,
+    "loop": true
   }
 }

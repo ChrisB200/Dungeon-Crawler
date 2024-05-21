@@ -14,7 +14,7 @@ class Settings:
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.targetFPS = 120
         self.keyboard = Controls(K_d, K_a, K_s, K_w, K_LSHIFT, K_ESCAPE, 1)
-        self.controller = Controls(0, 0, 1, 1, 1, 0, 20)
+        self.controller = Controls(0, 0, 1, 1, 1, 7, 100)
 
     @property
     def width(self):

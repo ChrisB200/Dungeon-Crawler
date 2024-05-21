@@ -1,10 +1,15 @@
 # Modules
 import pygame
+import logging
 from dataclasses import dataclass
 
-import logging
+# Scripts
+
 
 logger = logging.getLogger(__name__)
+
+TRIGGER_UP = pygame.USEREVENT + 1
+TRIGGER_DOWN = pygame.USEREVENT + 2
 
 @dataclass
 class Controls:
@@ -15,6 +20,37 @@ class Controls:
     dash: int
     pause: int
     shoot: int
+
+class Trigger:
+    def __init__(self, axis):
+        self.axis = axis
+        self.number = -1
+        self.down = False
+        self.up = False
+        self.activated = False
+        self.stop = 0
+
+    def get_trigger(self, joystick):
+        self.number = joystick.get_axis(self.axis)
+        
+        # Check if the trigger is pressed beyond the stop threshold
+        if self.number > self.stop:
+            if not self.activated:
+                self.down = True
+            else:
+                self.down = False
+            self.activated = True
+            self.up = False
+        elif self.number < self.stop:
+            if self.activated:
+                self.up = True
+                self.activated = False
+            else:
+                self.up = False
+            self.down = False
+        else:
+            self.down = False
+            self.up = False
 
 class Controller:
     def __init__(self, controls:Controls, joystick):
@@ -27,9 +63,13 @@ class Controller:
         # controller sticks
         self.leftStick = pygame.math.Vector2()
         self.rightStick = pygame.math.Vector2()
+        self.leftTrigger = Trigger(4)
+        self.rightTrigger = Trigger(5)
 
         # attributes
         self.deadzone = 0.1
+        self.triggerStop = 0
+        self.triggerActivated = False
 
     # reassigns the joystick to the controller
     def reassign_joystick(self, joystick):
@@ -56,10 +96,14 @@ class Controller:
         self.rightStick.x = rightStick[0]
         self.rightStick.y = rightStick[1]
 
+    def calculate_triggers(self):
+        self.leftTrigger.get_trigger(self.joystick)
+        self.rightTrigger.get_trigger(self.joystick)
+
     # update the sticks
     def update(self):
         self.calculate_sticks()
-    
+        self.calculate_triggers()    
 class Keyboard:
     def __init__(self, controls:Controls):
         self.controls = controls

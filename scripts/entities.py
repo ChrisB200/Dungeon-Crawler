@@ -165,7 +165,7 @@ class Player(PhysicsEntity):
     def event_handler(self, event, game):
         if self.input is not None:
             if isinstance(self.input, Controller):
-                self.controller_input(event)
+                self.controller_input(event, game)
             else:
                 self.keyboard_input(event, game)
 
@@ -199,7 +199,7 @@ class Player(PhysicsEntity):
                 if self.weapon:
                     self.weapon.shoot(game)
 
-    def controller_input(self, event):
+    def controller_input(self, event, game):
         if self.input.leftStick.x > 0:
             self.directions["right"] = True
             self.directions["left"] = False
@@ -223,6 +223,10 @@ class Player(PhysicsEntity):
         else:
             self.directions["down"] = False
             self.directions["up"] = False
+
+        if self.input.rightTrigger.down:
+            if self.weapon:
+                self.weapon.shoot(game)
 
     def update_animation_state(self):
         if any(self.directions.values()):  # If any direction is True, player is moving
@@ -279,7 +283,7 @@ class Player(PhysicsEntity):
         self.update_animation(dt)
 
         if self.cursor:
-            self.cursor.update(self, camera)
+            self.cursor.update(self, camera, dt)
         if self.input:
             self.input.update()
         if self.weapon:
@@ -295,7 +299,7 @@ class UserCursor(Entity):
         self.transform.x = x
         self.transform.y = y
 
-    def update(self, player:Player, camera:Camera):
+    def update(self, player:Player, camera:Camera, dt):
         x = self.transform.x
         y = self.transform.y
         if x < 0:
@@ -319,6 +323,7 @@ class UserCursor(Entity):
             self.set_transform(x, y)
 
         self.cursor_in_space(camera.scale)
+        self.update_animation(dt)
 
     def cursor_in_space(self, camera_scale):
         self.location.x = self.transform.x // camera_scale

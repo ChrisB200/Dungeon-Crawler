@@ -68,7 +68,7 @@ class Game():
 
         # player properties
         player = Player(numOfPlayers, pos, [16, 16], "player2", self.assets, layer, animation="idle/down")
-        cursor = UserCursor(pos, [9, 9], "cursor1", self.assets, layer=90, isScroll=False)
+        cursor = UserCursor(pos, [9, 9], "cursor", self.assets, layer=90, isScroll=False)
         weapon = self.DEFAULT_WEAPON.copy()
         weapon.set_transform(pos)
         input = self.inputDevices[input]
@@ -130,7 +130,8 @@ class Game():
     def run(self):
         self.detect_inputs()
         self.create_player((200, 20), 0, layer=1)
-        self.window.world.set_targets(self.players.get_entity(0))
+        self.create_player((200, 20), 1, layer=1)
+        self.window.world.set_targets(*[self.players.get_entity(i) for i in range(len(self.players.sprites()))])
         while self.state == "running":
             pygame.mouse.set_visible(False)
             self.calculate_deltatime()

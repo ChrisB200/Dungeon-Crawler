@@ -1,3 +1,3 @@
-from scripts.animation import load_animations
+import pygame
 
 BASE_IMG_PATH = "data/images/"

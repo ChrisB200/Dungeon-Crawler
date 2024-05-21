@@ -39,7 +39,6 @@ class Animation:
 # Loads an image using its location   
 def load_image(path):
     img = pygame.image.load(path).convert_alpha()
-    img.set_colorkey((0, 0, 0))
     return img
     
 # Loads a group of images in a directory
