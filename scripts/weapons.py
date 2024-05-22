@@ -16,6 +16,11 @@ class Weapon(Entity):
         self.bullet = bullet
         self.pivot = pygame.math.Vector2(pivot)
         self.rotation = 0
+        self.maxBullets = 20
+        self.currentBullets = self.maxBullets
+        self.shootTime = 2
+        self.currentShootTime = 0
+        self.canShoot = True
 
     def copy(self):
         return Weapon(self.transform, self.size, self.tag, self.assets, self.bullet, self.camLayer, self.isScroll, self.anim, self.pivot)
@@ -36,15 +41,28 @@ class Weapon(Entity):
 
     # shoot bullets
     def shoot(self, game):
-        bullet = self.bullet.copy()
-        bullet.start(self.transform, self.rotation)
-        game.bullets.add(bullet)
+        if self.canShoot:
+            bullet = self.bullet.copy()
+            bullet.start(self.transform, self.rotation)
+            game.bullets.add(bullet)
+            self.currentShootTime = self.shootTime
+
+    def update_timers(self, dt):
+        if self.currentShootTime <= 0:
+            self.canShoot = True
+        elif self.currentShootTime > 0:
+            self.currentShootTime -= 1 * dt
+            print(self.currentShootTime)
+            self.canShoot = False
 
     # update the position of the weapon to the players 
     def update(self, entity, camera, dt):
         self.transform = entity.get_center().copy()
         self.rotate_at_cursor(entity.cursor, camera)
         self.animation.update(dt)
+        self.update_timers(dt)
+
+
 
 class Bullet(PhysicsEntity):
     def __init__(self, transform, size, tag, assets, rotation, camLayer=1, isScroll=True, animation="idle"):
