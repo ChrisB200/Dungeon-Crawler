@@ -16,11 +16,20 @@ class Weapon(Entity):
         self.bullet = bullet
         self.pivot = pygame.math.Vector2(pivot)
         self.rotation = 0
-        self.maxBullets = 20
-        self.currentBullets = self.maxBullets
-        self.shootTime = 2
+
+        # magazine
+        self.maxMagazine = 200
+        self.magazine = self.maxMagazine
+        self.reloadTime = 0.5
+        self.currentReloadTime = 0
+        self.canReload = True
+        self.isAutomatic = True
+
+        # time between shots
+        self.shootTime = 0.1
         self.currentShootTime = 0
         self.canShoot = True
+        self.shooting = False
 
     def copy(self):
         return Weapon(self.transform, self.size, self.tag, self.assets, self.bullet, self.camLayer, self.isScroll, self.anim, self.pivot)
@@ -41,26 +50,46 @@ class Weapon(Entity):
 
     # shoot bullets
     def shoot(self, game):
-        if self.canShoot:
+        if self.canShoot and self.magazine > 0:
             bullet = self.bullet.copy()
             bullet.start(self.transform, self.rotation)
             game.bullets.add(bullet)
             self.currentShootTime = self.shootTime
+            self.magazine -= 1
+            print("shot bullet")
+
+    def reload(self):
+        if self.canReload:
+            self.currentReloadTime = self.reloadTime
+            print("reloading")
 
     def update_timers(self, dt):
-        if self.currentShootTime <= 0:
-            self.canShoot = True
-        elif self.currentShootTime > 0:
-            self.currentShootTime -= 1 * dt
-            print(self.currentShootTime)
-            self.canShoot = False
+        # reload time
+        if self.currentReloadTime <= 0:
+            if self.canReload == False:#
+                self.magazine = self.maxMagazine
+                print("replenished magazine")
+            self.canReload = True
+            # time between shots timer
+            if self.currentShootTime <= 0:
+                self.canShoot = True
+            elif self.currentShootTime > 0:
+                self.currentShootTime -= 1 * dt
+                self.canShoot = False
+        elif self.currentReloadTime > 0:
+            self.currentReloadTime -= 1 * dt
+            self.canReload = False
+            print("cant reload")
 
     # update the position of the weapon to the players 
-    def update(self, entity, camera, dt):
+    def update(self, entity, camera, dt, game):
         self.transform = entity.get_center().copy()
         self.rotate_at_cursor(entity.cursor, camera)
         self.animation.update(dt)
         self.update_timers(dt)
+
+        if self.shooting:
+            self.shoot(game)
 
 
 

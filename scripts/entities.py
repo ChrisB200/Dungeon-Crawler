@@ -179,6 +179,9 @@ class Player(PhysicsEntity):
                 self.directions["up"] = True
             if event.key == self.input.controls.moveDown:
                 self.directions["down"] = True
+            if event.key == self.input.controls.reload:
+                if self.weapon:
+                    self.weapon.reload()
 
         elif event.type == pygame.KEYUP:
             if event.key == self.input.controls.moveLeft:
@@ -197,7 +200,15 @@ class Player(PhysicsEntity):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == self.input.controls.shoot:
                 if self.weapon:
-                    self.weapon.shoot(game)
+                    if self.weapon.isAutomatic:
+                        self.weapon.shooting = True
+                    else:
+                        self.weapon.shoot(game)
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            if self.weapon:
+                if self.weapon.isAutomatic:
+                    self.weapon.shooting = False
 
     def controller_input(self, event, game):
         if self.input.leftStick.x > 0:
@@ -272,7 +283,7 @@ class Player(PhysicsEntity):
             elif self.lastFacedDirection["right"]:
                 self.set_action("idle/right")
 
-    def update(self, tiles, dt, camera: Camera):
+    def update(self, tiles, dt, camera: Camera, game):
         self.movement.x = (-1 if self.directions["left"] else 1 if self.directions["right"] else 0) * self.speed
         self.movement.y = (-1 if self.directions["up"] else 1 if self.directions["down"] else 0) * self.speed
 
@@ -291,7 +302,7 @@ class Player(PhysicsEntity):
         if self.input:
             self.input.update()
         if self.weapon:
-            self.weapon.update(self, camera, dt)
+            self.weapon.update(self, camera, dt, game)
         #camera.draw_rect((255, 0, 0), self.rect)
 
 class UserCursor(Entity):

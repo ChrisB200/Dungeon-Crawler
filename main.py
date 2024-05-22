@@ -114,7 +114,7 @@ class Game():
 
         player: Player
         for player in self.players:
-            player.update([], self.dt, self.window.world)
+            player.update([], self.dt, self.window.world, self)
         
         for bullet in self.bullets:
             bullet.update(self.dt)

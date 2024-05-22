@@ -20,6 +20,7 @@ class Controls:
     dash: int
     pause: int
     shoot: int
+    reload: int
 
 class Trigger:
     def __init__(self, axis):
