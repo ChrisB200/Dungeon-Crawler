@@ -130,7 +130,7 @@ class Game():
     def run(self):
         self.detect_inputs()
         self.create_player((200, 20), 0, layer=1)
-        #self.create_player((200, 20), 1, layer=1)
+        self.create_player((500, 20), 0, layer=1)
         self.window.world.set_targets(*[self.players.get_entity(i) for i in range(len(self.players.sprites()))])
         while self.state == "running":
             pygame.mouse.set_visible(False)

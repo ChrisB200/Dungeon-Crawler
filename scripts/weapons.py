@@ -7,6 +7,7 @@ from pygame.constants import *
 # Scripts
 from scripts.entities import Entity, ModifiedSpriteGroup, PhysicsEntity
 from scripts.framework import blit_rotate
+from scripts.camera import Camera
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class Weapon(Entity):
         self.rotation = 0
 
         # magazine
-        self.maxMagazine = 200
+        self.maxMagazine = 1200
         self.magazine = self.maxMagazine
         self.reloadTime = 0.5
         self.currentReloadTime = 0
@@ -41,6 +42,7 @@ class Weapon(Entity):
         self.transform = pygame.math.Vector2(rotated_img[1].x, rotated_img[1].y)
         self.rect = rotated_img[1]
         return rotated_img[0].convert_alpha()
+
 
     # rotates the weapon at the cursor
     def rotate_at_cursor(self, cursor, camera) -> None:
@@ -82,7 +84,7 @@ class Weapon(Entity):
             print("cant reload")
 
     # update the position of the weapon to the players 
-    def update(self, entity, camera, dt, game):
+    def update(self, entity, camera:Camera, dt, game):
         self.transform = entity.get_center().copy()
         self.rotate_at_cursor(entity.cursor, camera)
         self.animation.update(dt)
@@ -91,14 +93,16 @@ class Weapon(Entity):
         if self.shooting:
             self.shoot(game)
 
-
-
 class Bullet(PhysicsEntity):
     def __init__(self, transform, size, tag, assets, rotation, camLayer=1, isScroll=True, animation="idle"):
         super().__init__(transform, size, tag, assets, camLayer, isScroll, animation)
         self.rotation = rotation
         self.speed = 300
 
+    # calculate the direction vector
+    def calculate_direction(self) -> pygame.math.Vector2:
+        return super().calculate_direction() * self.speed
+    
     def copy(self):
         return Bullet(self.transform, self.size, self.tag, self.assets, self.rotation, self.camLayer, self.isScroll, self.anim)
 
@@ -108,13 +112,6 @@ class Bullet(PhysicsEntity):
         self.transform = self.startTransform
         self.direction = self.calculate_direction()
 
-    # calculate the direction vector
-    def calculate_direction(self) -> pygame.math.Vector2:
-        direction = pygame.math.Vector2()
-        direction.x = math.cos(math.radians(self.rotation)) 
-        direction.y = -math.sin(math.radians(self.rotation))
-        direction = direction.normalize() * self.speed
-        return direction
 
     def update(self, dt):
         self.move(self.direction, [], dt)

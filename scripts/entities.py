@@ -65,6 +65,13 @@ class Entity(pygame.sprite.Sprite):
             self.action = action
             self.animation = self.assets[self.tag + "/" + self.action].copy()
 
+    def calculate_direction(self) -> pygame.math.Vector2:
+        direction = pygame.math.Vector2()
+        direction.x = math.cos(math.radians(self.rotation)) 
+        direction.y = -math.sin(math.radians(self.rotation))
+        direction = direction.normalize()
+        return direction
+
     # sets a transform
     def set_transform(self, transform):
         self.transform = pygame.math.Vector2(transform)
