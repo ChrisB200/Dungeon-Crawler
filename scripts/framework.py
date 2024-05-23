@@ -31,7 +31,7 @@ def convertBool(val):
     return True if val.lower() == "true" else False
 
 # Returns centered coordinates of surface
-def blit_center(display ,pos):
+def blit_center(display, pos):
     x = int(display.get_width() / 2)
     y = int(display.get_height() / 2)
     return (pos[0] - x, pos[1] - y)

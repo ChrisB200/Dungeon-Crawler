@@ -1,7 +1,6 @@
 # Modules
 import pygame
 import math
-import copy
 import logging
 from pygame.constants import *
 
@@ -250,12 +249,14 @@ class Player(PhysicsEntity):
         if any(self.directions.values()):  # If any direction is True, player is moving
             if self.directions["up"]:
                 if self.weapon: self.weapon.camLayer = self.camLayer - 1
-                #if self.directions["left"]:
-                #    self.set_action("run/up-left")
-                #elif self.directions["right"]:
-                #    self.set_action("run/up-right")
-                #else:
-                #    self.set_action("run/up")
+                if self.directions["left"]:
+                    pass
+                    #self.set_action("run/up-left")
+                elif self.directions["right"]:
+                    pass
+                    #self.set_action("run/up-right")
+                else:
+                    self.set_action("run/up")
             elif self.directions["down"]:
                 if self.weapon: self.weapon.camLayer = self.camLayer + 1
                 #if self.directions["left"]:
@@ -279,7 +280,7 @@ class Player(PhysicsEntity):
                     self.set_action("idle/up-right")
                 else:
                     pass
-                    #self.set_action("idle/up")
+                    self.set_action("idle/up")
             elif self.lastFacedDirection["down"]:
                 if self.lastFacedDirection["left"]:
                     #self.set_action("idle/down-left")

@@ -60,7 +60,7 @@ class Game():
         self.DEFAULT_BULLET = Bullet((0, 0), (5, 2), "bullet1", self.assets, 0)
 
         # weapons
-        self.DEFAULT_WEAPON = Weapon((0, 0), (8, 6), "gun", self.assets, bullet=self.DEFAULT_BULLET, camLayer=5, pivot=(-4, 0))
+        self.DEFAULT_WEAPON = Weapon((0, 0),(8, 0), (8, 6), "gun", self.assets, bullet=self.DEFAULT_BULLET, camLayer=5, pivot=(-6, 0))
     
     # creates a player and assigns them a controller
     def create_player(self, pos, input=0, layer=0):
@@ -145,6 +145,3 @@ if __name__ == "__main__":
     game.run()
     pygame.quit()
     sys.exit()
-        
-
-

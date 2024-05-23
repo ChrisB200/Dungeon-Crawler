@@ -82,5 +82,9 @@
   "newPlayer/run/right": {
     "img_dur": 0.2,
     "loop": true
+  },
+  "newPlayer/run/up": {
+    "img_dur": 0.15,
+    "loop": true
   }
 }

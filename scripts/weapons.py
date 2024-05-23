@@ -9,19 +9,22 @@ from scripts.entities import Entity, ModifiedSpriteGroup, PhysicsEntity
 from scripts.framework import blit_rotate
 from scripts.camera import Camera
 
+
 logger = logging.getLogger(__name__)
 
 class Weapon(Entity):
-    def __init__(self, transform, size, tag, assets, bullet, camLayer=3, isScroll=True, animation="idle", pivot=(0, 0)):
+    def __init__(self, transform, muzzleTransform, size, tag, assets, bullet, camLayer=3, isScroll=True, animation="idle", pivot=(0, 0)):
         super().__init__(transform, size, tag, assets, camLayer, isScroll, animation)
         self.bullet = bullet
         self.pivot = pygame.math.Vector2(pivot)
         self.rotation = 0
+        self.localRotation = 0
+        self.muzzleTransform = pygame.math.Vector2(muzzleTransform)
 
         # magazine
-        self.maxMagazine = 1200
+        self.maxMagazine = 200
         self.magazine = self.maxMagazine
-        self.reloadTime = 0.5
+        self.reloadTime = 5
         self.currentReloadTime = 0
         self.canReload = True
         self.isAutomatic = True
@@ -33,28 +36,41 @@ class Weapon(Entity):
         self.shooting = False
 
     def copy(self):
-        return Weapon(self.transform, self.size, self.tag, self.assets, self.bullet, self.camLayer, self.isScroll, self.anim, self.pivot)
+        return Weapon(self.transform, self.muzzleTransform, self.size, self.tag, self.assets, self.bullet, self.camLayer, self.isScroll, self.anim, self.pivot)
 
     @property
     def image(self) -> pygame.Surface:
-        img = pygame.transform.flip(self.animation.img(), False, self.flip)
+        img = pygame.transform.rotate(pygame.transform.flip(self.animation.img(), False, self.flip), self.localRotation)
         rotated_img = blit_rotate(img, self.transform, self.pivot, self.rotation)
         self.transform = pygame.math.Vector2(rotated_img[1].x, rotated_img[1].y)
         self.rect = rotated_img[1]
         return rotated_img[0].convert_alpha()
-
-
+    
     # rotates the weapon at the cursor
-    def rotate_at_cursor(self, cursor, camera) -> None:
+    def rotate_at_cursor(self, cursor, camera:Camera) -> None:
         weapon = self.transform - camera.scroll
         self.flip = (False if cursor.location.x > weapon.x else True)
         self.rotation = self.get_point_angle(cursor.location, camera.scroll)
+        camera.draw_line((255, 0, 0), self.transform + self.pivot, self.transform)
+
+    def get_muzzle_transform(self):
+        # calculate the offset from the pivot to the muzzle in the rotated image
+        offset = self.muzzleTransform - self.pivot
+        if self.flip: 
+            offset.x = -offset.x
+            rotated_offset = offset.rotate(180-self.rotation)
+        else:
+            rotated_offset = offset.rotate(-self.rotation)
+        # calculate the global position of the muzzle
+        muzzle_position = self.transform + rotated_offset
+        return muzzle_position
 
     # shoot bullets
     def shoot(self, game):
         if self.canShoot and self.magazine > 0:
             bullet = self.bullet.copy()
-            bullet.start(self.transform, self.rotation)
+            muzzleTransform = self.get_muzzle_transform()
+            bullet.start(muzzleTransform, self.rotation)
             game.bullets.add(bullet)
             self.currentShootTime = self.shootTime
             self.magazine -= 1
@@ -72,15 +88,21 @@ class Weapon(Entity):
                 self.magazine = self.maxMagazine
                 print("replenished magazine")
             self.canReload = True
+            self.localRotation = 0
             # time between shots timer
-            if self.currentShootTime <= 0:
+            if self.currentShootTime <= 0 and self.currentReloadTime <=0:
                 self.canShoot = True
             elif self.currentShootTime > 0:
                 self.currentShootTime -= 1 * dt
                 self.canShoot = False
+            else:
+                self.canShoot = False
         elif self.currentReloadTime > 0:
             self.currentReloadTime -= 1 * dt
             self.canReload = False
+            self.localRotation += 360 * (dt / self.reloadTime)
+            self.localRotation %= 360
+            self.canShoot = False
             print("cant reload")
 
     # update the position of the weapon to the players 
@@ -111,7 +133,6 @@ class Bullet(PhysicsEntity):
         self.rotation = rotation
         self.transform = self.startTransform
         self.direction = self.calculate_direction()
-
 
     def update(self, dt):
         self.move(self.direction, [], dt)
