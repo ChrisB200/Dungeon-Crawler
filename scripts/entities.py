@@ -250,43 +250,48 @@ class Player(PhysicsEntity):
         if any(self.directions.values()):  # If any direction is True, player is moving
             if self.directions["up"]:
                 if self.weapon: self.weapon.camLayer = self.camLayer - 1
-                if self.directions["left"]:
-                    self.set_action("run/up-left")
-                elif self.directions["right"]:
-                    self.set_action("run/up-right")
-                else:
-                    self.set_action("run/up")
+                #if self.directions["left"]:
+                #    self.set_action("run/up-left")
+                #elif self.directions["right"]:
+                #    self.set_action("run/up-right")
+                #else:
+                #    self.set_action("run/up")
             elif self.directions["down"]:
                 if self.weapon: self.weapon.camLayer = self.camLayer + 1
-                if self.directions["left"]:
-                    self.set_action("run/down-left")
-                elif self.directions["right"]:
-                    self.set_action("run/down-right")
-                else:
-                    self.set_action("run/down")
+                #if self.directions["left"]:
+                #    self.set_action("run/down-left")
+                #elif self.directions["right"]:
+                #    self.set_action("run/down-right")
+                
+                self.set_action("run/down")
             elif self.directions["left"]:
                 if self.weapon: self.weapon.camLayer = self.camLayer + 1
-                self.set_action("run/left")
+                #self.set_action("run/left")
             elif self.directions["right"]:
                 if self.weapon: self.weapon.camLayer = self.camLayer + 1
                 self.set_action("run/right")
         else:  # Player is idle, use last faced direction
             if self.lastFacedDirection["up"]:
                 if self.lastFacedDirection["left"]:
-                    self.set_action("idle/up-left")
+                    #self.set_action("idle/up-left")
+                    pass
                 elif self.lastFacedDirection["right"]:
                     self.set_action("idle/up-right")
                 else:
-                    self.set_action("idle/up")
+                    pass
+                    #self.set_action("idle/up")
             elif self.lastFacedDirection["down"]:
                 if self.lastFacedDirection["left"]:
-                    self.set_action("idle/down-left")
+                    #self.set_action("idle/down-left")
+                    pass
                 elif self.lastFacedDirection["right"]:
-                    self.set_action("idle/down-right")
+                    #self.set_action("idle/down-right")
+                    pass
                 else:
                     self.set_action("idle/down")
             elif self.lastFacedDirection["left"]:
-                self.set_action("idle/left")
+                pass
+                #self.set_action("idle/left")
             elif self.lastFacedDirection["right"]:
                 self.set_action("idle/right")
 

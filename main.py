@@ -67,7 +67,7 @@ class Game():
         numOfPlayers = len(self.players.sprites())
 
         # player properties
-        player = Player(numOfPlayers, pos, [16, 16], "player2", self.assets, layer, animation="idle/down")
+        player = Player(numOfPlayers, pos, [24, 24], "newPlayer", self.assets, layer, animation="idle/down")
         cursor = UserCursor(pos, [9, 9], "cursor", self.assets, layer=90, isScroll=False)
         weapon = self.DEFAULT_WEAPON.copy()
         weapon.set_transform(pos)
