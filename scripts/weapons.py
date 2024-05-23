@@ -51,7 +51,7 @@ class Weapon(Entity):
         weapon = self.transform - camera.scroll
         self.flip = (False if cursor.location.x > weapon.x else True)
         self.rotation = self.get_point_angle(cursor.location, camera.scroll)
-        camera.draw_line((255, 0, 0), self.transform + self.pivot, self.transform)
+        #camera.draw_line((255, 0, 0), self.transform + self.pivot, self.transform)
 
     def get_muzzle_transform(self):
         # calculate the offset from the pivot to the muzzle in the rotated image

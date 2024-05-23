@@ -3,6 +3,9 @@ import pygame
 from pygame.constants import *
 import logging
 
+# Scripts
+from scripts.menu import UserInterface, Menu, Element
+
 logger = logging.getLogger(__name__)
     
 class Window():
@@ -15,6 +18,7 @@ class Window():
 
         self.world = Camera(self.resolution, 4, (0, 0), minScale=1, maxScale=1, panStrength=10)
         self.foreground = Camera(self.resolution, 1)
+        self.ui = UserInterface(self.resolution)
     
     @property
     def worldScreen(self):
@@ -34,10 +38,14 @@ class Window():
     def draw_foreground(self, *args, **kwargs):
         self.foreground.draw(*args, **kwargs)
 
+    def draw_ui(self):
+        self.ui.draw()
+
     def draw(self):
         self.display.fill((0, 0, 0))
-        self.display.blit(pygame.transform.scale(self.worldScreen, self.resolution), (0, 0))
+        self.display.blit(pygame.transform.scale(self.worldScreen, self.resolution), self.world.scrollDiff)
         self.display.blit(self.foregroundScreen, (0, 0))
+        self.display.blit(self.ui.screen, (0, 0))
 
 class Camera(pygame.sprite.Group):
     def __init__(self, resolution, scale, offset=(0, 0), panStrength=20, minScale=1, maxScale=1, zoomSpeed=1):
@@ -48,6 +56,8 @@ class Camera(pygame.sprite.Group):
         self.screen = pygame.Surface((self.resolution[0] / self.scale, self.resolution[1] / self.scale), pygame.SRCALPHA | pygame.HWSURFACE)
         # scroll
         self.trueScroll = pygame.math.Vector2()
+        self.oldScroll = pygame.math.Vector2()
+        self.scrollDiff = pygame.math.Vector2()
         # tracking
         self.target = None  # [target, [offsetX, offsetY]]
         self.isPanning = False
@@ -64,7 +74,10 @@ class Camera(pygame.sprite.Group):
 
     @property
     def scroll(self):
-        return pygame.math.Vector2([int(self.trueScroll.x), int(self.trueScroll.y)])
+        scroll = pygame.math.Vector2(int(self.trueScroll.x), int(self.trueScroll.y))
+        self.scrollDiff = scroll - self.trueScroll
+        print(self.scrollDiff)
+        return scroll
     
     # the rescaled screen size
     @property
@@ -187,6 +200,7 @@ class Camera(pygame.sprite.Group):
         targetCenter = pygame.math.Vector2()
         targetCenter.x = center.x + self.offset[0]
         targetCenter.y = center.y + self.offset[1]
+
         self.trueScroll.x += ((targetCenter.x - self.trueScroll.x) - self.screenSize[0] / 2) / self.panStrength
         self.trueScroll.y += ((targetCenter.y - self.trueScroll.y) - self.screenSize[1] / 2) / self.panStrength
 
