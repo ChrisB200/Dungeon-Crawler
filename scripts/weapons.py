@@ -72,6 +72,7 @@ class Weapon(Entity):
             muzzleTransform = self.get_muzzle_transform()
             bullet.start(muzzleTransform, self.rotation)
             game.bullets.add(bullet)
+            game.add_to_world(bullet)
             self.currentShootTime = self.shootTime
             self.magazine -= 1
             print("shot bullet")

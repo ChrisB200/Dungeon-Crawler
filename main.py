@@ -83,6 +83,12 @@ class Game():
         self.cursors.add(cursor)
         self.weapons.add(weapon)
 
+        self.window.world.add(player, cursor, weapon)
+        self.window.foreground.add(cursor)
+
+    def add_to_world(self, *sprites):
+        self.window.world.add(*sprites)
+
     # detects input devices and appends them
     def detect_inputs(self):
         self.inputDevices = []
@@ -104,10 +110,10 @@ class Game():
     
     # draws the window
     def draw(self):
-        self.window.draw_world(self.players, self.entities, self.weapons, self.bullets, fill=(150, 150, 150))
-        self.window.draw_foreground(self.cursors)
+        self.window.draw_world(fill=(150, 150, 150))
+        self.window.draw_foreground()
         self.window.draw()
-        pygame.display.update()
+        pygame.display.flip()
     
     def update(self):
         self.window.update()
@@ -130,6 +136,10 @@ class Game():
     def run(self):
         self.detect_inputs()
         self.create_player((200, 20), 0, layer=1)
+        self.create_player((200, 70), 0, layer=1)
+        self.create_player((400, 90), 0, layer=1)
+        self.create_player((400, 120), 0, layer=1)
+        self.create_player((500, 150), 0, layer=1)
         #self.create_player((500, 20), 0, layer=1)
         self.window.world.set_targets(*[self.players.get_entity(i) for i in range(len(self.players.sprites()))])
         while self.state == "running":
@@ -138,7 +148,7 @@ class Game():
             self.event_handler()
             self.update()
             self.draw()
-            #print(int(self.clock.get_fps()))
+            print(int(self.clock.get_fps()))
             
 if __name__ == "__main__":
     game = Game()

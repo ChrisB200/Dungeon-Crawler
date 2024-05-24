@@ -112,10 +112,10 @@ class Camera(pygame.sprite.Group):
         self.queue.append(("rect", colour, rect))
 
     # seperates sprites out of groups and adds them into a new group
-    def add_sprites(self, *args):
-        for group in args:
-            for sprite in group:
-                self.add(sprite)
+    # def add_sprites(self, *args):
+    #     for group in args:
+    #         for sprite in group:
+    #             self.add(sprite)
 
     # draws the keyword arguments
     def draw_background(self, **kwargs):
@@ -216,9 +216,8 @@ class Camera(pygame.sprite.Group):
         self.screen = tempScreen
 
     # handles all the drawing within the camera class
-    def draw(self, *args, **kwargs):
+    def draw(self, **kwargs):
         self.draw_background(**kwargs)
-        self.add_sprites(*args)
         
         match self.renderOrder:
             case {"layer": True}:
@@ -229,10 +228,6 @@ class Camera(pygame.sprite.Group):
                 self.draw_by_y
 
         self.draw_queue()
-
-        # empty sprites since they get re added
-        if self.sprites():
-            self.empty()
 
     # handles all the updates within the camera class
     def update(self):
