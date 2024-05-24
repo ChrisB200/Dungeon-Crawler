@@ -76,7 +76,6 @@ class Camera(pygame.sprite.Group):
     def scroll(self):
         scroll = pygame.math.Vector2(int(self.trueScroll.x), int(self.trueScroll.y))
         self.scrollDiff = scroll - self.trueScroll
-        print(self.scrollDiff)
         return scroll
     
     # the rescaled screen size

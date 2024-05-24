@@ -159,7 +159,7 @@ class Player(PhysicsEntity):
     def __init__(self, id:int, transform:tuple[int, int], size:tuple[int, int], tag:str, assets:dict[str, Animation], layer=0, isScroll=True, animation="idle"):
         super().__init__(transform, size, tag, assets, layer, isScroll, animation)
         self.id = id
-        self.speed = 150
+        self.speed = 100
         self.weapon = None
         self.directions = {"up": False, "down": False, "left": False, "right": False}
         self.lastFacedDirection = {"up": False, "down": False, "left": False, "right": False}

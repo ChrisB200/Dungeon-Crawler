@@ -6,7 +6,7 @@ from pygame.constants import *
 
 # Scripts
 from scripts.entities import Entity, ModifiedSpriteGroup, PhysicsEntity
-from scripts.framework import blit_rotate
+from scripts.framework import blit_rotate, get_center
 from scripts.camera import Camera
 
 
@@ -24,7 +24,7 @@ class Weapon(Entity):
         # magazine
         self.maxMagazine = 200
         self.magazine = self.maxMagazine
-        self.reloadTime = 5
+        self.reloadTime = 1
         self.currentReloadTime = 0
         self.canReload = True
         self.isAutomatic = True
@@ -46,12 +46,11 @@ class Weapon(Entity):
         self.rect = rotated_img[1]
         return rotated_img[0].convert_alpha()
     
-    # rotates the weapon at the cursor
+    # rotates the weapon at the cursors center
     def rotate_at_cursor(self, cursor, camera:Camera) -> None:
         weapon = self.transform - camera.scroll
-        self.flip = (False if cursor.location.x > weapon.x else True)
-        self.rotation = self.get_point_angle(cursor.location, camera.scroll)
-        #camera.draw_line((255, 0, 0), self.transform + self.pivot, self.transform)
+        self.flip = False if cursor.location.x > weapon.x else True
+        self.rotation = self.get_point_angle(get_center(cursor.location, cursor.size), camera.scroll)
 
     def get_muzzle_transform(self):
         # calculate the offset from the pivot to the muzzle in the rotated image
@@ -61,6 +60,7 @@ class Weapon(Entity):
             rotated_offset = offset.rotate(180-self.rotation)
         else:
             rotated_offset = offset.rotate(-self.rotation)
+
         # calculate the global position of the muzzle
         muzzle_position = self.transform + rotated_offset
         return muzzle_position
@@ -68,26 +68,28 @@ class Weapon(Entity):
     # shoot bullets
     def shoot(self, game):
         if self.canShoot and self.magazine > 0:
+            # create bullet at muzzle transform
             bullet = self.bullet.copy()
             muzzleTransform = self.get_muzzle_transform()
             bullet.start(muzzleTransform, self.rotation)
+
+            # add to world and camera
             game.bullets.add(bullet)
             game.add_to_world(bullet)
+
+            # start timer
             self.currentShootTime = self.shootTime
             self.magazine -= 1
-            print("shot bullet")
 
     def reload(self):
         if self.canReload:
             self.currentReloadTime = self.reloadTime
-            print("reloading")
 
     def update_timers(self, dt):
         # reload time
         if self.currentReloadTime <= 0:
             if self.canReload == False:#
                 self.magazine = self.maxMagazine
-                print("replenished magazine")
             self.canReload = True
             self.localRotation = 0
             # time between shots timer
@@ -104,7 +106,6 @@ class Weapon(Entity):
             self.localRotation += 360 * (dt / self.reloadTime)
             self.localRotation %= 360
             self.canShoot = False
-            print("cant reload")
 
     # update the position of the weapon to the players 
     def update(self, entity, camera:Camera, dt, game):
@@ -115,12 +116,13 @@ class Weapon(Entity):
 
         if self.shooting:
             self.shoot(game)
-
 class Bullet(PhysicsEntity):
     def __init__(self, transform, size, tag, assets, rotation, camLayer=1, isScroll=True, animation="idle"):
         super().__init__(transform, size, tag, assets, camLayer, isScroll, animation)
         self.rotation = rotation
         self.speed = 300
+        self.timeAlive = 2
+        self.currentTimeAlive = self.timeAlive
 
     # calculate the direction vector
     def calculate_direction(self) -> pygame.math.Vector2:
@@ -135,6 +137,14 @@ class Bullet(PhysicsEntity):
         self.transform = self.startTransform
         self.direction = self.calculate_direction()
 
+    def update_timer(self, dt):
+        self.currentTimeAlive -= dt * 1
+        if self.currentTimeAlive < 0:
+            self.kill()
+            self.remove()
+
     def update(self, dt):
         self.move(self.direction, [], dt)
         self.animation.update(dt)
+        self.update_timer(dt)
+        

@@ -136,10 +136,6 @@ class Game():
     def run(self):
         self.detect_inputs()
         self.create_player((200, 20), 0, layer=1)
-        self.create_player((200, 70), 0, layer=1)
-        self.create_player((400, 90), 0, layer=1)
-        self.create_player((400, 120), 0, layer=1)
-        self.create_player((500, 150), 0, layer=1)
         #self.create_player((500, 20), 0, layer=1)
         self.window.world.set_targets(*[self.players.get_entity(i) for i in range(len(self.players.sprites()))])
         while self.state == "running":
@@ -148,7 +144,7 @@ class Game():
             self.event_handler()
             self.update()
             self.draw()
-            print(int(self.clock.get_fps()))
+            #print(int(self.clock.get_fps()))
             
 if __name__ == "__main__":
     game = Game()

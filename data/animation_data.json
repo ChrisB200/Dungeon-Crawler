@@ -80,7 +80,7 @@
     "loop": true
   },
   "newPlayer/run/right": {
-    "img_dur": 0.2,
+    "img_dur": 0.1,
     "loop": true
   },
   "newPlayer/run/up": {
